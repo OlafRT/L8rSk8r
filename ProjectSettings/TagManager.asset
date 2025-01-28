@@ -10,18 +10,20 @@ TagManager:
   - wall
   - Vehicle
   - car
+  - CinemachineTarget
+  - Weapon
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Camera
   - Water
   - UI
   - Ground
   - Player
   - Matel
   - Die
-  - 
+  - Weapon
   - 
   - 
   - 
