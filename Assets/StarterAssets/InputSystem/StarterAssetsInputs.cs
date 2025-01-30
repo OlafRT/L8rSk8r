@@ -13,6 +13,7 @@ namespace StarterAssets
 		public bool jump;
 		public bool sprint;
 		public bool attack;
+		public Vector2 lookInput { get { return look; } }
 
 		[Header("Movement Settings")]
 		public bool analogMovement;
