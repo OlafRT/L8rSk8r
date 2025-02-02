@@ -70,3 +70,10 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+Assets/BorrowedAssets/Textures/Skybox.tga
+Assets/BorrowedAssets/Textures/Skybox.tga.meta
+Assets/PlayMaker/Editor/Install/Playmaker.1.9.5.unitypackage.meta
+Assets/PlayMaker/Editor/Install/Playmaker.1.9.6.unitypackage.meta
+Assets/PlayMaker/Editor/Install/Playmaker.1.9.7.unitypackage.meta
+Assets/PlayMaker/Editor/Install/Playmaker.1.9.8.unitypackage.meta
+Assets/PlayMaker/Editor/Install/ProfilerActions.unitypackage.meta
