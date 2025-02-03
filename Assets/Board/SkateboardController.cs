@@ -58,11 +58,9 @@ namespace StarterAssets
         [Tooltip("0 = remove all sideways velocity each frame; 1 = remove none.")]
         public float lateralVelocityRetention = 0.0f; 
 
-        [Header("In-Air Alignment")]
-        [Tooltip("If true, the board will slowly rotate to face velocity in air.")]
-        public bool alignInAir = true;
-        [Tooltip("Slerp speed for air alignment.")]
-        public float airAlignSpeed = 1f;      
+        [Header("Manual Air Rotation")]
+        public float rotationSensitivityX = 5f; // Controls rotation strength on X-axis (pitch)
+        public float rotationSensitivityY = 5f; // Controls rotation strength on Y-axis (yaw)     
 
         [Header("Jump Settings")]
         public float jumpForce = 10f; // Adjustable jump force
@@ -143,9 +141,9 @@ namespace StarterAssets
                 rb.drag = dragInAir;
 
                 // Optionally align to velocity in mid-air (only after enough time airborne)
-                if (alignInAir && timeSinceGrounded > groundedCooldown)
+               if (timeSinceGrounded > groundedCooldown)
                 {
-                    AlignBoardInAir();
+                    HandleAirRotation();
                 }
             }
 
@@ -199,23 +197,19 @@ namespace StarterAssets
         }
 
         /// <summary>
-        /// If in the air, optionally make the board slowly face its velocity vector (pitching up/down).
+        /// Manually rotate the board while in the air based on player input.
         /// </summary>
-        private void AlignBoardInAir()
+        private void HandleAirRotation()
         {
-            Vector3 vel = rb.velocity;
+            float pitchInput = _input.move.y; // W/S or Up/Down
+            float yawInput = _input.move.x;  // A/D or Left/Right
 
-            // Only align if velocity is high enough to warrant alignment
-            if (vel.sqrMagnitude < 0.5f) return;
+            // Calculate rotation adjustments
+            float pitchRotation = pitchInput * rotationSensitivityX * Time.fixedDeltaTime;
+            float yawRotation = yawInput * rotationSensitivityY * Time.fixedDeltaTime;
 
-            Quaternion targetRot = Quaternion.LookRotation(vel.normalized, Vector3.up);
-            Quaternion finalRot = Quaternion.Slerp(
-                rb.rotation,
-                targetRot,
-                airAlignSpeed * 0.5f * Time.fixedDeltaTime // Reduce alignment speed
-            );
-
-            rb.MoveRotation(finalRot);
+            // Apply rotations to the rigidbody
+            rb.MoveRotation(rb.rotation * Quaternion.Euler(pitchRotation, yawRotation, 0f));
         }
 
         /// <summary>
@@ -380,7 +374,6 @@ namespace StarterAssets
         }
     }
 }
-
 
 
 
