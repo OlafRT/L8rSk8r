@@ -51,6 +51,8 @@ namespace StarterAssets
         [Header("Ground Alignment")]
         [Tooltip("Speed for slerp alignment to ground when grounded.")]
         public float groundAlignSpeed = 10f; 
+        private float timeSinceGrounded = 0f;
+        private float groundedCooldown = 0.1f; // Delay before aligning stops after landing
 
         [Header("Lateral Friction (No-Drift)")]
         [Tooltip("0 = remove all sideways velocity each frame; 1 = remove none.")]
@@ -61,6 +63,12 @@ namespace StarterAssets
         public bool alignInAir = true;
         [Tooltip("Slerp speed for air alignment.")]
         public float airAlignSpeed = 1f;      
+
+        [Header("Jump Settings")]
+        public float jumpForce = 10f; // Adjustable jump force
+
+        [Header("Obstacle Handling")]
+        public float bumpTolerance = 0.1f; // Maximum height of obstacles to ride over 
 
         // Private references
         private Rigidbody rb;
@@ -95,13 +103,24 @@ namespace StarterAssets
         private void FixedUpdate()
         {
             // 1) Ground check (raycast)
+            bool wasGrounded = isGrounded;
             isGrounded = Physics.Raycast(
-                transform.position,
+                transform.position + Vector3.up * bumpTolerance, // Slightly above the ground
                 Vector3.down,
                 out groundHit,
-                suspensionRayLength,
+                suspensionRayLength + bumpTolerance, // Extend suspension ray length slightly
                 groundLayer
             );
+
+            // Track time since the board was last grounded
+            if (isGrounded)
+            {
+                timeSinceGrounded = 0f; // Reset timer when grounded
+            }
+            else
+            {
+                timeSinceGrounded += Time.fixedDeltaTime; // Increment timer when in the air
+            }
 
             // 2) Custom gravity
             rb.AddForce(Physics.gravity * gravityMultiplier, ForceMode.Acceleration);
@@ -123,23 +142,18 @@ namespace StarterAssets
                 // In mid-air, reduce drag for more natural flight
                 rb.drag = dragInAir;
 
-                // Optionally align to velocity in mid-air
-                if (alignInAir)
+                // Optionally align to velocity in mid-air (only after enough time airborne)
+                if (alignInAir && timeSinceGrounded > groundedCooldown)
                 {
                     AlignBoardInAir();
                 }
             }
 
-            // 4) Handle pushing
+            // Handle other skateboard controls
             HandlePush();
-
-            // 5) Handle braking
+            HandleJump(); // Jump using jump input
             HandleBraking();
-
-            // 6) Handle turning
             HandleTurning();
-
-            // 7) Enforce max speed
             LimitSpeed();
         }
 
@@ -150,22 +164,20 @@ namespace StarterAssets
         private void ApplySuspension()
         {
             float distance = groundHit.distance - rideHeightAdjustment;
-            // Don’t let distance go below zero (meaning we are “through” the ground).
             if (distance < 0f) distance = 0f;
 
-            // If distance < suspensionRayLength, we push up.
             float springOffset = suspensionRayLength - distance;
-            if (springOffset < 0f) return; // Already above suspensionRayLength => no spring needed.
+            if (springOffset < 0f) return;
 
-            // Hooke’s law spring: F = k * x
-            float springForce = springOffset * suspensionStrength;
-
-            // Damping based on velocity along board’s up
+            float springForce = Mathf.Clamp(springOffset * suspensionStrength, 0, suspensionStrength * 0.75f); // 75% limit
             float verticalVelocity = Vector3.Dot(rb.velocity, transform.up);
-            float damping = suspensionDamp * verticalVelocity;
+            float damping = Mathf.Clamp(suspensionDamp * verticalVelocity, -suspensionStrength, suspensionStrength);
 
             Vector3 force = transform.up * (springForce - damping);
             rb.AddForce(force, ForceMode.Force);
+
+            // Prevent velocity spikes when touching the ground
+            rb.velocity = new Vector3(rb.velocity.x, Mathf.Max(rb.velocity.y, -1f), rb.velocity.z);
         }
 
         /// <summary>
@@ -192,18 +204,15 @@ namespace StarterAssets
         private void AlignBoardInAir()
         {
             Vector3 vel = rb.velocity;
-            // If too small velocity, do nothing
-            if (vel.sqrMagnitude < 0.1f) return;
 
-            // The board's forward should align with actual velocity (full 3D).
-            // If you want to keep the board from flipping upside down, 
-            // you can use Vector3.up as the second parameter:
+            // Only align if velocity is high enough to warrant alignment
+            if (vel.sqrMagnitude < 0.5f) return;
+
             Quaternion targetRot = Quaternion.LookRotation(vel.normalized, Vector3.up);
-
             Quaternion finalRot = Quaternion.Slerp(
                 rb.rotation,
                 targetRot,
-                airAlignSpeed * Time.fixedDeltaTime
+                airAlignSpeed * 0.5f * Time.fixedDeltaTime // Reduce alignment speed
             );
 
             rb.MoveRotation(finalRot);
@@ -228,22 +237,22 @@ namespace StarterAssets
         }
 
         /// <summary>
-        /// Impulse forward when space is pressed and grounded.
+        /// Impulse forward when mouse is pressed and grounded.
         /// </summary>
-        private void HandlePush()
+    private void HandlePush()
+    {
+        if (_input.attack && isGrounded) // Change from jump to attack
         {
-            if (_input.jump && isGrounded)
-            {
-                // Instant impulse in forward direction
-                rb.AddForce(transform.forward * pushForce, ForceMode.VelocityChange);
+            // Instant impulse in forward direction
+            rb.AddForce(transform.forward * pushForce, ForceMode.VelocityChange);
 
-                // Trigger push animation
-                animator?.SetTrigger(pushAnimationTrigger);
+            // Trigger push animation
+            animator?.SetTrigger(pushAnimationTrigger);
 
-                // Prevent repeated triggers in the same frame
-                _input.jump = false;
-            }
+            // Prevent repeated triggers in the same frame
+            _input.attack = false; // Reset the attack input
         }
+    }
 
         /// <summary>
         /// Braking: applying force opposite to velocity on "S" or down input.
@@ -271,6 +280,21 @@ namespace StarterAssets
             {
                 float angleThisFrame = turnInput * turnSpeed * Time.fixedDeltaTime;
                 rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, angleThisFrame, 0f));
+            }
+        }
+
+        private void HandleJump()
+        {
+            if (_input.jump && isGrounded)
+            {
+                // Apply vertical impulse for the jump
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+
+                // Trigger the Ollie animation
+                animator?.SetTrigger("Ollie");
+
+                // Prevent repeated triggers in the same frame
+                _input.jump = false;
             }
         }
 
