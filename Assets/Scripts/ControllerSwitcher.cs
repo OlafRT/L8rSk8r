@@ -6,9 +6,8 @@ public class ControllerSwitcher : MonoBehaviour
 {
     public GameObject thirdPersonController; // Third-person controller object
     public GameObject skateboardController; // Skateboard controller object
-
     public InputAction switchAction; // InputAction to toggle controllers
-
+    public MusicManager musicManager; // Reference to the MusicManager script
     private bool isSkateboardActive = false;
     public GameObject skateboardPlayerFollowCamera; // Game object with the virtual camera for skateboard mode
     public GameObject playerFollowCamera; // Game object with the virtual camera for third-person mode
@@ -35,6 +34,10 @@ public class ControllerSwitcher : MonoBehaviour
         if (switchAction == null)
         {
             Debug.LogError("SwitchAction is not assigned in the inspector!");
+        }
+                if (musicManager != null)
+        {
+            musicManager.SetPlaylist(musicManager.thirdPersonMusic); // Set default to third-person music
         }
     }
 
@@ -88,6 +91,11 @@ public class ControllerSwitcher : MonoBehaviour
 
             // Change the target of the Cinemachine Virtual Camera to the skateboard camera root
             camera.Follow = skateboardCameraRoot.transform;
+
+            if (musicManager != null)
+            {
+                musicManager.SetPlaylist(musicManager.skateboardMusic); // Switch to skateboard music
+            }
         }
         else
         {
@@ -110,6 +118,11 @@ public class ControllerSwitcher : MonoBehaviour
 
             // Change the target of the Cinemachine Virtual Camera to the player camera root
             camera.Follow = playerCameraRoot.transform;
+
+            if (musicManager != null)
+            {
+                musicManager.SetPlaylist(musicManager.thirdPersonMusic); // Switch to third-person music
+            }
         }
     }
 

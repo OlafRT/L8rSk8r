@@ -356,10 +356,13 @@ namespace StarterAssets
         {
             if (!frontWheel) return;
 
-            float speed = rb.velocity.magnitude;
-            if (speed > 0.1f)
+            // Calculate forward velocity along the board's local forward axis
+            float forwardSpeed = Vector3.Dot(rb.velocity, transform.forward);
+
+            // Determine wheel rotation direction based on forward speed
+            if (Mathf.Abs(forwardSpeed) > 0.1f)
             {
-                float wheelRotation = speed * wheelRotationSpeed * Time.deltaTime;
+                float wheelRotation = forwardSpeed * wheelRotationSpeed * Time.deltaTime; // Use signed speed
                 frontWheel.Rotate(Vector3.right, wheelRotation);
             }
         }
