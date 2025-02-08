@@ -31,6 +31,10 @@ public class NPCNavMeshController : MonoBehaviour
     [Tooltip("Animator with parameters: IsWalking, IsRunning, Idle, Attack.")]
     public Animator animator;
 
+    [Header("Sound Settings")]
+    [Tooltip("Array of sounds to play randomly when the NPC starts chasing the player.")]
+    public AudioClip[] chaseSounds;
+
     // ----- Private Variables -----
     private NavMeshAgent agent;
     private Transform player;
@@ -41,6 +45,7 @@ public class NPCNavMeshController : MonoBehaviour
     // Define the NPC states.
     private enum NPCState { Idle, Wander, Chase, Attack }
     private NPCState currentState = NPCState.Wander;
+    private NPCState previousState = NPCState.Wander;
 
     private void Start()
     {
@@ -57,6 +62,8 @@ public class NPCNavMeshController : MonoBehaviour
         SetNewWanderDestination();
         wanderTimer = wanderInterval;
         idleTimer = idleTime;
+
+        previousState = currentState;
     }
 
     private void Update()
@@ -81,7 +88,6 @@ public class NPCNavMeshController : MonoBehaviour
             else
             {
                 // Otherwise, if not in chase range, wander.
-                // (You can also choose to idle if desired.)
                 if (currentState != NPCState.Idle)
                     currentState = NPCState.Wander;
             }
@@ -110,12 +116,19 @@ public class NPCNavMeshController : MonoBehaviour
                 break;
         }
 
-        // Optional: You can have the NPC face its movement direction.
+        // Optional: Face movement direction.
         if (agent.velocity.sqrMagnitude > 0.1f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(agent.velocity.normalized);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
         }
+
+        // If we have just transitioned into Chase state, play a random chase sound.
+        if (currentState == NPCState.Chase && previousState != NPCState.Chase)
+        {
+            PlayChaseSound();
+        }
+        previousState = currentState;
     }
 
     // --------------------
@@ -135,7 +148,6 @@ public class NPCNavMeshController : MonoBehaviour
             // Switch to Idle state.
             currentState = NPCState.Idle;
             idleTimer = idleTime;
-            // Optionally, set an "Idle" parameter in your animator.
             animator.SetBool("Idle", true);
             animator.SetBool("IsWalking", false);
         }
@@ -166,7 +178,7 @@ public class NPCNavMeshController : MonoBehaviour
         }
     }
 
-    // Chase: Set the agent’s destination to the player's position.
+    // Chase: Set the agent's destination to the player's position.
     void ChaseUpdate()
     {
         // Set animator parameters.
@@ -201,8 +213,6 @@ public class NPCNavMeshController : MonoBehaviour
         agent.isStopped = true;
         animator.SetTrigger("Attack");
 
-        // (Here you might add code to deal damage to the player, etc.)
-
         // After the attack (or after a short delay), resume chasing.
         // For simplicity, we immediately switch back to chase.
         currentState = NPCState.Chase;
@@ -224,5 +234,16 @@ public class NPCNavMeshController : MonoBehaviour
             agent.SetDestination(navHit.position);
         }
     }
+
+    // Plays a random chase sound from the chaseSounds array.
+    void PlayChaseSound()
+    {
+        if (chaseSounds != null && chaseSounds.Length > 0)
+        {
+            int index = Random.Range(0, chaseSounds.Length);
+            AudioSource.PlayClipAtPoint(chaseSounds[index], transform.position);
+        }
+    }
 }
+
 

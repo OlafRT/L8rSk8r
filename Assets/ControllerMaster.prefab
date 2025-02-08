@@ -1,0 +1,137 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1193235182171381803
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3724173189440942351}
+  - component: {fileID: 3388905293529063707}
+  - component: {fileID: 146897775209450168}
+  - component: {fileID: 2074585939968276240}
+  m_Layer: 0
+  m_Name: ControllerMaster
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3724173189440942351
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1193235182171381803}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.30350477, y: 0.916108, z: 1.307277}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3388905293529063707
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1193235182171381803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b41ee44802dbd1479b83ea02c983f2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  thirdPersonController: {fileID: 0}
+  skateboardController: {fileID: 0}
+  switchAction:
+    m_Name: Switch
+    m_Type: 0
+    m_ExpectedControlType: 
+    m_Id: f06b65c9-b6ee-420c-892c-7347512d1401
+    m_Processors: 
+    m_Interactions: 
+    m_SingletonActionBindings:
+    - m_Name: 
+      m_Id: f91d8007-fa0c-491d-a35d-2d46450e15fc
+      m_Path: <Keyboard>/e
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Switch
+      m_Flags: 0
+    - m_Name: 
+      m_Id: a00ff4e3-339d-464b-85ee-c36ce5008d84
+      m_Path: <Gamepad>/buttonNorth
+      m_Interactions: 
+      m_Processors: 
+      m_Groups: 
+      m_Action: Switch
+      m_Flags: 0
+    m_Flags: 0
+  musicManager: {fileID: 2074585939968276240}
+  skateboardPlayerFollowCamera: {fileID: 0}
+  playerFollowCamera: {fileID: 0}
+  skateboardCameraRoot: {fileID: 0}
+  playerCameraRoot: {fileID: 0}
+  skateboardModeEnableObjects:
+  - {fileID: 0}
+  skateboardModeDisableObjects:
+  - {fileID: 0}
+  thirdPersonModeEnableObjects:
+  - {fileID: 0}
+  thirdPersonModeDisableObjects:
+  - {fileID: 0}
+--- !u!114 &146897775209450168
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1193235182171381803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 50e743b5bfdeaa1479593b49927a52de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  audioSources:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  soundClips:
+  - {fileID: 8300000, guid: 581b74aa6acb8d549b92a000d37b742c, type: 3}
+  - {fileID: 8300000, guid: 9326e4f10fab2134fa1270efaeed7a09, type: 3}
+  - {fileID: 8300000, guid: 71dd7584ac1db8441ad7190b996b0ed2, type: 3}
+  - {fileID: 8300000, guid: e7ad36e45031d0d4c84185aa2c736475, type: 3}
+  - {fileID: 8300000, guid: 354c9c50c50cfda47bf8e06ccee355a1, type: 3}
+  - {fileID: 8300000, guid: aa1224388887b6d4bbcbe7fc215df5b5, type: 3}
+  - {fileID: 8300000, guid: d87bb0b60e4cc184fad3794de8381a8b, type: 3}
+  - {fileID: 8300000, guid: 5cd96661a1b911e45b2985e7eca5ed49, type: 3}
+  - {fileID: 8300000, guid: 7e1b334a84652144bb933194cf0910a3, type: 3}
+  - {fileID: 8300000, guid: 347337c5ef18ee94d833bb115a60efac, type: 3}
+  - {fileID: 8300000, guid: bb7a77132abcb68489abc9cb217a357a, type: 3}
+  interval: 120
+--- !u!114 &2074585939968276240
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1193235182171381803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7f6924e14f5ce24eaa295c6bd0599a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  musicSource: {fileID: 0}
+  thirdPersonMusic:
+  - {fileID: 8300000, guid: 75ebea1119137c547947118e268613a1, type: 3}
+  skateboardMusic:
+  - {fileID: 8300000, guid: 8862ba497817c3a48a3c406c6f669d9a, type: 3}
+  - {fileID: 8300000, guid: 27cdb509634818f43a32aa652769df20, type: 3}
+  combatMusic: {fileID: 8300000, guid: 2bcce04be7f4aad48a5c3647e4047088, type: 3}
+  delayBetweenTracks: 2
