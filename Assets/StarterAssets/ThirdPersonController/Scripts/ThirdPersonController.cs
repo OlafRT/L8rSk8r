@@ -169,7 +169,6 @@ namespace StarterAssets
         private void Update()
         {
             _hasAnimator = TryGetComponent(out _animator);
-
             JumpAndGravity();
             GroundedCheck();
             Move();
@@ -366,16 +365,16 @@ namespace StarterAssets
 
         private void HandleAttackInput()
         {
-            // Set the "Attack" bool based on whether the attack button is pressed
+            // Set the "Attack" bool based on whether the attack button is pressed.
             if (_input.attack)
             {
-                isAttacking = true; // Set attacking state to true
-                _animator.SetBool("IsAttacking", true); // Keep attack animation active
+                isAttacking = true; // Set attacking state to true.
+                _animator.SetBool("IsAttacking", true); // Keep attack animation active.
             }
             else
             {
-                isAttacking = false; // Set attacking state to false
-                _animator.SetBool("IsAttacking", false); // Stop attack animation
+                isAttacking = false; // Set attacking state to false.
+                _animator.SetBool("IsAttacking", false); // Stop attack animation.
             }
         }
 
@@ -387,6 +386,15 @@ namespace StarterAssets
                 AudioSource.PlayClipAtPoint(swingSounds[randomIndex], transform.position, FootstepAudioVolume);
             }
         }
+
+        // New method for the attack sound Animation Event.
+        private void OnAttackSound(AnimationEvent animationEvent)
+        {
+            // Optionally, add a debug message:
+            // Debug.Log("Attack sound event triggered.");
+            PlaySwingSound();
+        }
+
         private static float ClampAngle(float lfAngle, float lfMin, float lfMax)
         {
             if (lfAngle < -360f) lfAngle += 360f;

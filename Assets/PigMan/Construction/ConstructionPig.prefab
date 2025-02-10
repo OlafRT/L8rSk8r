@@ -26329,7 +26329,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.9111589, z: -0, w: 0.4120553}
   m_LocalPosition: {x: 17.8, y: -27.368458, z: 93.1}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.2, y: 1.2, z: 1.2}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6812371653927892610}
@@ -26380,7 +26380,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2.27
-  m_BaseOffset: 0.6
+  m_BaseOffset: 0.7
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!114 &9210320138739624699
@@ -26410,8 +26410,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1024
   attackingBoolName: IsAttacking
-  hitSounds: []
-  deathSound: {fileID: 0}
+  hitSounds:
+  - {fileID: 8300000, guid: b2425ab78e1b7b4498df518bab8acf75, type: 3}
+  - {fileID: 8300000, guid: 1e3c8cd1442f50a43b646f3aec167f02, type: 3}
+  - {fileID: 8300000, guid: 5f924cfbaa60c554dbcdedca99b90cbf, type: 3}
+  deathSound: {fileID: 8300000, guid: 38414f9f94e77124583b415d0e63d904, type: 3}
   groundOffset: 0.2
 --- !u!114 &9029814014371843876
 MonoBehaviour:
@@ -26498,7 +26501,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_PlayOnAwake: 1
-  m_Volume: 1
+  m_Volume: 0.3
   m_Pitch: 1
   Loop: 0
   Mute: 0
