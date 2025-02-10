@@ -42,6 +42,10 @@ public class NPCDeathController : MonoBehaviour
     [Tooltip("Sound to play when the NPC dies.")]
     public AudioClip deathSound;
 
+    [Header("Grounding Settings")]
+    [Tooltip("Additional Y offset to adjust the NPC's final death position relative to the ground.")]
+    public float groundOffset = 0f;
+
     // Internal flag to prevent multiple death triggers.
     private bool isDead = false;
 
@@ -55,7 +59,6 @@ public class NPCDeathController : MonoBehaviour
     /// Checks if the collider is on the weapon layer and if its root object is attacking.
     /// If so, applies one unit of damage.
     /// </summary>
-    /// <param name="collision">Collision data.</param>
     private void OnCollisionEnter(Collision collision)
     {
         // 1) Check if the colliding object is on the designated weapon layer.
@@ -92,9 +95,8 @@ public class NPCDeathController : MonoBehaviour
 
     /// <summary>
     /// Applies damage to the NPC. If still alive, plays the hit animation, particle effect, and a random hit sound.
-    /// On the final hit, plays death particle effects, triggers death animation and sound, then disables movement and collisions.
+    /// On the final hit, plays death particle effects and triggers the death sequence.
     /// </summary>
-    /// <param name="damage">Damage amount (typically 1).</param>
     public void TakeDamage(int damage)
     {
         if (isDead)
@@ -108,7 +110,7 @@ public class NPCDeathController : MonoBehaviour
             if (animator != null)
                 animator.SetTrigger(hitAnimationTrigger);
 
-            // Play hit particle effect.
+            // Play the hit particle effect.
             if (hitEffect != null)
                 hitEffect.Play();
 
@@ -137,6 +139,7 @@ public class NPCDeathController : MonoBehaviour
     /// <summary>
     /// Handles the NPC's death: triggers the death animation and sound,
     /// disables movement/AI and collisions so the corpse doesn't slide,
+    /// forces the NPC to align with the ground (plus an adjustable offset),
     /// and schedules the destruction of the NPC.
     /// </summary>
     private void Die()
@@ -170,10 +173,33 @@ public class NPCDeathController : MonoBehaviour
         if (col != null)
             col.enabled = false;
 
+        // Enable the Rigidbody to let physics take over (if not already active).
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.useGravity = true;
+        }
+
+        // Snap the NPC to the ground with an adjustable offset.
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out hit, 100f))
+        {
+            transform.position = new Vector3(transform.position.x, hit.point.y + groundOffset, transform.position.z);
+        }
+
+        // Freeze the NPC so it doesn't continue falling.
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.isKinematic = true;
+        }
+
         // Finally, destroy the NPC GameObject after the specified delay.
         Destroy(gameObject, destroyDelay);
     }
 }
+
 
 
 

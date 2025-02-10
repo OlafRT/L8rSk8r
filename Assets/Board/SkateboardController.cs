@@ -47,12 +47,13 @@ namespace StarterAssets
         [Header("Animation")]
         public Animator animator;
         public string pushAnimationTrigger = "Push";
+        // (Assumes additional animator parameters: "Ollie", "TurnLeft", "TurnRight", "Grounded", "InAir", and "Land")
 
         [Header("Ground Alignment")]
         [Tooltip("Speed for slerp alignment to ground when grounded.")]
         public float groundAlignSpeed = 10f; 
-        private float timeSinceGrounded = 0f;
-        private float groundedCooldown = 0.1f; // Delay before aligning stops after landing
+        public float timeSinceGrounded = 0f;
+        public float groundedCooldown = 0.1f; // Delay before aligning stops after landing
 
         [Header("Lateral Friction (No-Drift)")]
         [Tooltip("0 = remove all sideways velocity each frame; 1 = remove none.")]
@@ -73,9 +74,12 @@ namespace StarterAssets
         private PlayerInput playerInput;
         private StarterAssetsInputs _input;
 
-        // Ground check
+        // Ground check variables
         private bool isGrounded;
         private RaycastHit groundHit;
+
+        // For turning animation (to avoid repeatedly triggering the same animation)
+        private bool turningAnimationTriggered = false;
 
         private void Awake()
         {
@@ -92,7 +96,7 @@ namespace StarterAssets
 
         private void Update()
         {
-            // Handle purely visual or input-based checks in Update.
+            // Visual-only or input-based updates
             AnimateBackHinge();
             TiltPlank();
             RotateWheels();
@@ -100,64 +104,86 @@ namespace StarterAssets
 
         private void FixedUpdate()
         {
-            // 1) Ground check (raycast)
+            // 1) Ground check via raycast
             bool wasGrounded = isGrounded;
             isGrounded = Physics.Raycast(
-                transform.position + Vector3.up * bumpTolerance, // Slightly above the ground
+                transform.position + Vector3.up * bumpTolerance, // start slightly above the board
                 Vector3.down,
                 out groundHit,
-                suspensionRayLength + bumpTolerance, // Extend suspension ray length slightly
+                suspensionRayLength + bumpTolerance, // extend ray length a bit
                 groundLayer
             );
 
-            // Track time since the board was last grounded
+            // === NEW: Update Animator Grounded/InAir and Landing states ===
+            if (animator != null)
+            {
+                if (isGrounded)
+                {
+                    animator.SetBool("Grounded", true);
+                    animator.SetBool("InAir", false);
+                    if (!wasGrounded)
+                    {
+                        // Just landed – trigger the landing animation
+                        animator.SetTrigger("Land");
+                    }
+                }
+                else
+                {
+                    animator.SetBool("Grounded", false);
+                    animator.SetBool("InAir", true);
+                }
+            }
+            // ================================================================
+
+            // Track how long the board has been in the air
             if (isGrounded)
             {
-                timeSinceGrounded = 0f; // Reset timer when grounded
+                timeSinceGrounded = 0f; // reset timer when grounded
             }
             else
             {
-                timeSinceGrounded += Time.fixedDeltaTime; // Increment timer when in the air
+                timeSinceGrounded += Time.fixedDeltaTime; // increment timer when airborne
             }
 
-            // 2) Custom gravity
+            // 2) Apply custom gravity
             rb.AddForce(Physics.gravity * gravityMultiplier, ForceMode.Acceleration);
 
-            // 3) Stick to ground via spring force if grounded
+            // 3) When grounded, use suspension and align to ground
             if (isGrounded)
             {
                 ApplySuspension();
                 rb.drag = dragOnGround;
 
-                // Align to ground normal
+                // Align the board’s "up" direction to match the ground normal
                 AlignToGroundNormal(groundHit.normal);
 
-                // Remove drifting if desired
+                // Optionally remove sideways drift
                 ApplyNoDrift();
             }
             else
             {
-                // In mid-air, reduce drag for more natural flight
+                // When in air, use lower drag and (after a short delay) allow manual rotation
                 rb.drag = dragInAir;
-
-                // Optionally align to velocity in mid-air (only after enough time airborne)
-               if (timeSinceGrounded > groundedCooldown)
+                if (timeSinceGrounded > groundedCooldown)
                 {
                     HandleAirRotation();
                 }
             }
 
-            // Handle other skateboard controls
+            // Handle skateboard controls
             HandlePush();
-            HandleJump(); // Jump using jump input
+            HandleJump(); 
             HandleBraking();
             HandleTurning();
+
+            // === NEW: Handle Turn Animation Triggers ===
+            HandleTurnAnimation();
+
             LimitSpeed();
         }
 
         /// <summary>
-        /// Applies a spring force to keep the board near the ground, 
-        /// accounting for rideHeightAdjustment so it doesn't hover too high.
+        /// Applies a spring force to keep the board near the ground.
         /// </summary>
         private void ApplySuspension()
         {
@@ -167,95 +193,76 @@ namespace StarterAssets
             float springOffset = suspensionRayLength - distance;
             if (springOffset < 0f) return;
 
-            float springForce = Mathf.Clamp(springOffset * suspensionStrength, 0, suspensionStrength * 0.75f); // 75% limit
+            float springForce = Mathf.Clamp(springOffset * suspensionStrength, 0, suspensionStrength * 0.75f);
             float verticalVelocity = Vector3.Dot(rb.velocity, transform.up);
             float damping = Mathf.Clamp(suspensionDamp * verticalVelocity, -suspensionStrength, suspensionStrength);
 
             Vector3 force = transform.up * (springForce - damping);
             rb.AddForce(force, ForceMode.Force);
 
-            // Prevent velocity spikes when touching the ground
+            // Prevent sudden downward velocity spikes
             rb.velocity = new Vector3(rb.velocity.x, Mathf.Max(rb.velocity.y, -1f), rb.velocity.z);
         }
 
         /// <summary>
-        /// Slowly aligns the board’s “up” to the ground normal while grounded.
+        /// Aligns the board’s up-axis with the ground normal.
         /// </summary>
         private void AlignToGroundNormal(Vector3 groundNormal)
         {
-            // The target rotation realigning up-axis to ground
             Quaternion targetRotation = Quaternion.FromToRotation(transform.up, groundNormal) * rb.rotation;
-
-            // Slerp at groundAlignSpeed
-            Quaternion finalRotation = Quaternion.Slerp(
-                rb.rotation,
-                targetRotation,
-                groundAlignSpeed * Time.fixedDeltaTime
-            );
-
+            Quaternion finalRotation = Quaternion.Slerp(rb.rotation, targetRotation, groundAlignSpeed * Time.fixedDeltaTime);
             rb.MoveRotation(finalRotation);
         }
 
         /// <summary>
-        /// Manually rotate the board while in the air based on player input.
+        /// Allows manual air rotation based on player input.
         /// </summary>
         private void HandleAirRotation()
         {
-            float pitchInput = _input.move.y; // W/S or Up/Down
-            float yawInput = _input.move.x;  // A/D or Left/Right
+            float pitchInput = _input.move.y;
+            float yawInput = _input.move.x;
 
-            // Calculate rotation adjustments
             float pitchRotation = pitchInput * rotationSensitivityX * Time.fixedDeltaTime;
             float yawRotation = yawInput * rotationSensitivityY * Time.fixedDeltaTime;
 
-            // Apply rotations to the rigidbody
             rb.MoveRotation(rb.rotation * Quaternion.Euler(pitchRotation, yawRotation, 0f));
         }
 
         /// <summary>
-        /// Removes or reduces velocity perpendicular to the board's forward axis (no drift).
+        /// Removes sideways (lateral) velocity to reduce drift.
         /// </summary>
         private void ApplyNoDrift()
         {
             Vector3 velocity = rb.velocity;
             if (velocity.sqrMagnitude < 0.0001f) return;
 
-            // Separate velocity into forward vs sideways
             Vector3 forwardDir = transform.forward;
             Vector3 forwardComponent = Vector3.Project(velocity, forwardDir);
             Vector3 sidewaysComponent = velocity - forwardComponent;
 
-            // Keep some fraction of sideways (controlled by lateralVelocityRetention)
             Vector3 newVelocity = forwardComponent + sidewaysComponent * lateralVelocityRetention;
             rb.velocity = newVelocity;
         }
 
         /// <summary>
-        /// Impulse forward when mouse is pressed and grounded.
+        /// Handles the push input.
         /// </summary>
-    private void HandlePush()
-    {
-        if (_input.attack && isGrounded) // Change from jump to attack
+        private void HandlePush()
         {
-            // Instant impulse in forward direction
-            rb.AddForce(transform.forward * pushForce, ForceMode.VelocityChange);
-
-            // Trigger push animation
-            animator?.SetTrigger(pushAnimationTrigger);
-
-            // Prevent repeated triggers in the same frame
-            _input.attack = false; // Reset the attack input
+            if (_input.attack && isGrounded)
+            {
+                rb.AddForce(transform.forward * pushForce, ForceMode.VelocityChange);
+                animator?.SetTrigger(pushAnimationTrigger);
+                _input.attack = false;
+            }
         }
-    }
 
         /// <summary>
-        /// Braking: applying force opposite to velocity on "S" or down input.
+        /// Applies braking force when the player presses down.
         /// </summary>
         private void HandleBraking()
         {
             float moveInput = playerInput.actions["Move"].ReadValue<Vector2>().y;
-
-            // If pressing down while moving forward
             if (isGrounded && moveInput < 0f && rb.velocity.magnitude > 0.1f)
             {
                 Vector3 brakeDirection = -rb.velocity.normalized;
@@ -264,12 +271,11 @@ namespace StarterAssets
         }
 
         /// <summary>
-        /// Steering left/right (Y-axis rotation) when grounded.
+        /// Handles turning (rotating the board) when grounded.
         /// </summary>
         private void HandleTurning()
         {
             float turnInput = playerInput.actions["Move"].ReadValue<Vector2>().x;
-
             if (isGrounded && Mathf.Abs(turnInput) > 0.1f)
             {
                 float angleThisFrame = turnInput * turnSpeed * Time.fixedDeltaTime;
@@ -277,23 +283,21 @@ namespace StarterAssets
             }
         }
 
+        /// <summary>
+        /// Handles jump input – applies an upward impulse and triggers the jump ("Ollie") animation.
+        /// </summary>
         private void HandleJump()
         {
             if (_input.jump && isGrounded)
             {
-                // Apply vertical impulse for the jump
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-
-                // Trigger the Ollie animation
                 animator?.SetTrigger("Ollie");
-
-                // Prevent repeated triggers in the same frame
                 _input.jump = false;
             }
         }
 
         /// <summary>
-        /// Clamps total velocity to maxSpeed to prevent infinite acceleration.
+        /// Clamps the skateboard’s speed to the maximum allowed.
         /// </summary>
         private void LimitSpeed()
         {
@@ -305,7 +309,44 @@ namespace StarterAssets
             }
         }
 
-        // ----------------------------- VISUAL EXTRAS ----------------------------- //
+        /// <summary>
+        /// Continuously updates the animator booleans for turning left or right.
+        /// When the player is turning, the corresponding boolean is set to true, 
+        /// and when there’s no input (or the board is in the air) both are false.
+        /// </summary>
+        private void HandleTurnAnimation()
+        {
+            float turnInput = playerInput.actions["Move"].ReadValue<Vector2>().x;
+
+            // When not grounded, disable turning animations.
+            if (!isGrounded)
+            {
+                animator?.SetBool("TurnLeft", false);
+                animator?.SetBool("TurnRight", false);
+                return;
+            }
+
+            // Check the horizontal input threshold.
+            if (turnInput > 0.1f)
+            {
+                animator?.SetBool("TurnRight", true);
+                animator?.SetBool("TurnLeft", false);
+            }
+            else if (turnInput < -0.1f)
+            {
+                animator?.SetBool("TurnLeft", true);
+                animator?.SetBool("TurnRight", false);
+            }
+            else
+            {
+                // No significant turning input—reset both.
+                animator?.SetBool("TurnLeft", false);
+                animator?.SetBool("TurnRight", false);
+            }
+        }
+        // ====================================================================
+
+        // ======================= VISUAL EXTRAS =======================
 
         /// <summary>
         /// Rotates the back hinge visually when turning.
@@ -313,7 +354,6 @@ namespace StarterAssets
         private void AnimateBackHinge()
         {
             float turnInput = playerInput.actions["Move"].ReadValue<Vector2>().x;
-
             float targetHingeAngle = (isGrounded && Mathf.Abs(turnInput) > 0.1f)
                 ? turnInput * maxHingeAngle
                 : 0f;
@@ -329,12 +369,11 @@ namespace StarterAssets
         }
 
         /// <summary>
-        /// Tilts the plank side-to-side when turning, for a lean effect.
+        /// Tilts the board’s plank side-to-side when turning.
         /// </summary>
         private void TiltPlank()
         {
             float turnInput = playerInput.actions["Move"].ReadValue<Vector2>().x;
-
             float targetTiltAngle = (isGrounded && Mathf.Abs(turnInput) > 0.1f)
                 ? -turnInput * plankTiltAngle
                 : 0f;
@@ -355,20 +394,16 @@ namespace StarterAssets
         private void RotateWheels()
         {
             if (!frontWheel) return;
-
-            // Calculate forward velocity along the board's local forward axis
             float forwardSpeed = Vector3.Dot(rb.velocity, transform.forward);
-
-            // Determine wheel rotation direction based on forward speed
             if (Mathf.Abs(forwardSpeed) > 0.1f)
             {
-                float wheelRotation = forwardSpeed * wheelRotationSpeed * Time.deltaTime; // Use signed speed
+                float wheelRotation = forwardSpeed * wheelRotationSpeed * Time.deltaTime;
                 frontWheel.Rotate(Vector3.right, wheelRotation);
             }
         }
 
         /// <summary>
-        /// Zero out velocity if you want to reset the board instantaneously.
+        /// Immediately resets the board’s velocity.
         /// </summary>
         public void ResetSpeed()
         {
