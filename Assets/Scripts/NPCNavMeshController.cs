@@ -1,7 +1,9 @@
 using UnityEngine;
 using UnityEngine.AI;
 
+// Ensure both a NavMeshAgent and an AudioSource are attached to the NPC.
 [RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(AudioSource))]
 public class NPCNavMeshController : MonoBehaviour
 {
     // ----- Movement & Behavior Settings -----
@@ -47,6 +49,10 @@ public class NPCNavMeshController : MonoBehaviour
     private NPCState currentState = NPCState.Wander;
     private NPCState previousState = NPCState.Wander;
 
+    // --- NEW: AudioSource & flag for one-time chase sound ---
+    private AudioSource audioSource;
+    private bool chaseSoundPlayed = false;  // Ensures the chase sound is played only once
+
     private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
@@ -64,6 +70,9 @@ public class NPCNavMeshController : MonoBehaviour
         idleTimer = idleTime;
 
         previousState = currentState;
+
+        // --- NEW: Get the AudioSource component from the NPC ---
+        audioSource = GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -123,11 +132,12 @@ public class NPCNavMeshController : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
         }
 
-        // If we have just transitioned into Chase state, play a random chase sound.
-        if (currentState == NPCState.Chase && previousState != NPCState.Chase)
+        // --- NEW: Play the chase sound only once when entering the Chase state ---
+        if (currentState == NPCState.Chase && !chaseSoundPlayed)
         {
             PlayChaseSound();
         }
+
         previousState = currentState;
     }
 
@@ -235,15 +245,18 @@ public class NPCNavMeshController : MonoBehaviour
         }
     }
 
-    // Plays a random chase sound from the chaseSounds array.
+    // --- UPDATED: Plays a random chase sound from the chaseSounds array ---
+    // This method now plays the sound via the NPC's own AudioSource and sets a flag so it only plays once.
     void PlayChaseSound()
     {
-        if (chaseSounds != null && chaseSounds.Length > 0)
+        if (chaseSounds != null && chaseSounds.Length > 0 && audioSource != null)
         {
             int index = Random.Range(0, chaseSounds.Length);
-            AudioSource.PlayClipAtPoint(chaseSounds[index], transform.position);
+            audioSource.PlayOneShot(chaseSounds[index]);
+            chaseSoundPlayed = true;  // Prevent this sound from playing again
         }
     }
 }
+
 
 

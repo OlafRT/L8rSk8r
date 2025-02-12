@@ -13,13 +13,27 @@ public class MusicManager : MonoBehaviour
     [Header("Music Settings")]
     public float delayBetweenTracks = 2f; // Delay before the next track starts
 
+    [Header("Volume Settings")]
+    [Tooltip("Volume for background music.")]
+    public float defaultVolume = 0.053f;
+    [Tooltip("Volume for combat music.")]
+    public float combatVolume = 0.1f;
+
     private AudioClip[] currentPlaylist;  // Current playlist of music
     private bool isCombatActive = false;  // Flag to check if combat mode is active
     private int currentTrackIndex = 0;    // Tracks which song is playing
     private bool isPlaying = false;       // Prevents multiple play calls
 
+    // Variables to store the previous playlist state when switching to combat
+    private AudioClip[] storedPlaylist;
+    private int storedTrackIndex;
+
     void Start()
     {
+        // Set the music source's volume to the default value.
+        if (musicSource != null)
+            musicSource.volume = defaultVolume;
+        
         // Default to third-person music
         SetPlaylist(thirdPersonMusic);
         PlayNextTrack();
@@ -27,7 +41,7 @@ public class MusicManager : MonoBehaviour
 
     void Update()
     {
-        // Check if music has finished and play the next track
+        // If not in combat and music has finished, schedule the next track.
         if (!musicSource.isPlaying && !isCombatActive && !isPlaying)
         {
             isPlaying = true;
@@ -51,10 +65,11 @@ public class MusicManager : MonoBehaviour
     /// </summary>
     private void PlayNextTrack()
     {
-        if (currentPlaylist.Length == 0) return;
+        if (currentPlaylist == null || currentPlaylist.Length == 0)
+            return;
 
-        // Loop back to the start if at the end of the playlist
-        if (currentTrackIndex >= currentPlaylist.Length) 
+        // Loop back to the start if at the end of the playlist.
+        if (currentTrackIndex >= currentPlaylist.Length)
             currentTrackIndex = 0;
 
         musicSource.clip = currentPlaylist[currentTrackIndex];
@@ -68,8 +83,15 @@ public class MusicManager : MonoBehaviour
     /// </summary>
     public void EnterCombat()
     {
+        // Only store the current playlist if not already in combat.
+        if (!isCombatActive)
+        {
+            storedPlaylist = currentPlaylist;
+            storedTrackIndex = currentTrackIndex;
+        }
         isCombatActive = true;
         musicSource.clip = combatMusic;
+        musicSource.volume = combatVolume; // Increase volume for combat.
         musicSource.Play();
     }
 
@@ -79,7 +101,21 @@ public class MusicManager : MonoBehaviour
     public void ExitCombat()
     {
         isCombatActive = false;
-        PlayNextTrack();
+        musicSource.volume = defaultVolume; // Restore default volume.
+        if (storedPlaylist != null)
+        {
+            currentPlaylist = storedPlaylist;
+            currentTrackIndex = storedTrackIndex;
+            storedPlaylist = null;
+            PlayNextTrack();
+        }
+        else
+        {
+            // Fallback in case no stored playlist is available.
+            PlayNextTrack();
+        }
     }
 }
+
+
 
