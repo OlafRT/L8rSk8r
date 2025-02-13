@@ -26,6 +26,9 @@ public class NPCDeathController : MonoBehaviour
     [Tooltip("Trigger name for the death animation.")]
     public string deathAnimationTrigger = "Death";
 
+    [Tooltip("Bool parameter in the Animator to lock the NPC in the death state.")]
+    public string deadBoolName = "Dead";
+
     [Header("Destruction Settings")]
     [Tooltip("Time (in seconds) after death before the NPC is destroyed.")]
     public float destroyDelay = 15f;
@@ -148,9 +151,12 @@ public class NPCDeathController : MonoBehaviour
             return;
         isDead = true;
 
-        // Trigger the death animation.
+        // Set the 'Dead' bool on the animator, so transitions can't exit the death state.
         if (animator != null)
+        {
+            animator.SetBool(deadBoolName, true);
             animator.SetTrigger(deathAnimationTrigger);
+        }
 
         // Play the death sound.
         if (deathSound != null)

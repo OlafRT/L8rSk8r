@@ -103,6 +103,8 @@ public class PlayerHealthController : MonoBehaviour
         else if (currentHealth <= 0)
         {
             isPlayerDead = true;
+
+            // Play the player's death sound.
             if (audioSource != null && deathSound != null)
                 audioSource.PlayOneShot(deathSound);
 
@@ -111,6 +113,13 @@ public class PlayerHealthController : MonoBehaviour
 
             if (playerController != null)
                 playerController.enabled = false;
+
+            // NEW: If a boss delivered the final blow, play its kill sound.
+            if (BossController.lastAttacker != null)
+            {
+                BossController.lastAttacker.PlayKillSound();
+                BossController.lastAttacker = null;
+            }
 
             // Start UI fade-in for death elements.
             StartCoroutine(FadeInDeathUI());
@@ -235,6 +244,7 @@ public class PlayerHealthController : MonoBehaviour
         AudioListener.volume = 0f;
     }
 }
+
 
 
 

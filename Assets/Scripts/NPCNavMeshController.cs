@@ -30,12 +30,30 @@ public class NPCNavMeshController : MonoBehaviour
     public float idleTime = 2f;
 
     [Header("Animation")]
-    [Tooltip("Animator with parameters: IsWalking, IsRunning, Idle, Attack.")]
+    [Tooltip("Animator with parameters: IsWalking, IsRunning, Idle, Attack, etc.")]
     public Animator animator;
 
     [Header("Sound Settings")]
     [Tooltip("Array of sounds to play randomly when the NPC starts chasing the player.")]
     public AudioClip[] chaseSounds;
+
+    [Header("Attack Settings")]
+    [Tooltip("Attack cooldown (in seconds).")]
+    public float attackCooldown = 3f;
+    // Declare attackTimer so it exists in the context.
+    private float attackTimer = 0f;
+    [Tooltip("Trigger name for Attack 1.")]
+    public string attack1Trigger = "Attack1";
+    [Tooltip("Trigger name for Attack 2.")]
+    public string attack2Trigger = "Attack2";
+    [Tooltip("Trigger name for Attack 3.")]
+    public string attack3Trigger = "Attack3";
+    [Tooltip("Audio clip for Attack 1.")]
+    public AudioClip attack1Sound;
+    [Tooltip("Audio clip for Attack 2.")]
+    public AudioClip attack2Sound;
+    [Tooltip("Audio clip for Attack 3.")]
+    public AudioClip attack3Sound;
 
     // ----- Private Variables -----
     private NavMeshAgent agent;
@@ -45,7 +63,7 @@ public class NPCNavMeshController : MonoBehaviour
     private float idleTimer;
 
     // Define the NPC states.
-    private enum NPCState { Idle, Wander, Chase, Attack }
+    private enum NPCState { Idle, Wander, Chase, Attack, Death }
     private NPCState currentState = NPCState.Wander;
     private NPCState previousState = NPCState.Wander;
 
@@ -77,6 +95,13 @@ public class NPCNavMeshController : MonoBehaviour
 
     private void Update()
     {
+        // If the enemy is dead, do nothing.
+        if (currentState == NPCState.Death)
+            return;
+
+        if (attackTimer > 0f)
+            attackTimer -= Time.deltaTime;
+
         // --------------------
         // State Decision Logic
         // --------------------
@@ -144,8 +169,6 @@ public class NPCNavMeshController : MonoBehaviour
     // --------------------
     // State Methods
     // --------------------
-
-    // Wander: Move toward a randomly chosen destination.
     void WanderUpdate()
     {
         // Set animator parameters.
@@ -163,7 +186,6 @@ public class NPCNavMeshController : MonoBehaviour
         }
     }
 
-    // Idle: Stand still for a moment before wandering again.
     void IdleUpdate()
     {
         // Remain idle for idleTimer seconds.
@@ -188,10 +210,8 @@ public class NPCNavMeshController : MonoBehaviour
         }
     }
 
-    // Chase: Set the agent's destination to the player's position.
     void ChaseUpdate()
     {
-        // Set animator parameters.
         animator.SetBool("IsRunning", true);
         animator.SetBool("IsWalking", false);
         animator.SetBool("Idle", false);
@@ -200,13 +220,11 @@ public class NPCNavMeshController : MonoBehaviour
         {
             agent.SetDestination(player.position);
 
-            // If the player is within attack distance, switch to attack state.
             if (Vector3.Distance(transform.position, player.position) <= attackDistance)
             {
                 currentState = NPCState.Attack;
                 agent.isStopped = true;
             }
-            // If the player escapes detection, revert to wander.
             else if (Vector3.Distance(transform.position, player.position) > playerDetectionDistance)
             {
                 currentState = NPCState.Wander;
@@ -216,15 +234,31 @@ public class NPCNavMeshController : MonoBehaviour
         }
     }
 
-    // Attack: Trigger the attack animation and then resume chasing.
     void AttackUpdate()
     {
         // Stop the agent while attacking.
         agent.isStopped = true;
-        animator.SetTrigger("Attack");
+        attackTimer = attackCooldown;
 
-        // After the attack (or after a short delay), resume chasing.
-        // For simplicity, we immediately switch back to chase.
+        // Randomly choose one of three attacks.
+        int attackChoice = Random.Range(0, 3);
+        switch (attackChoice)
+        {
+            case 0:
+                animator.SetTrigger(attack1Trigger);
+                PlaySound(attack1Sound);
+                break;
+            case 1:
+                animator.SetTrigger(attack2Trigger);
+                PlaySound(attack2Sound);
+                break;
+            case 2:
+                animator.SetTrigger(attack3Trigger);
+                PlaySound(attack3Sound);
+                break;
+        }
+
+        // After the attack, resume chasing.
         currentState = NPCState.Chase;
         agent.isStopped = false;
     }
@@ -232,8 +266,6 @@ public class NPCNavMeshController : MonoBehaviour
     // --------------------
     // Helper Methods
     // --------------------
-
-    // Choose a new random destination within wanderRadius.
     void SetNewWanderDestination()
     {
         Vector3 randomDirection = Random.insideUnitSphere * wanderRadius;
@@ -245,16 +277,20 @@ public class NPCNavMeshController : MonoBehaviour
         }
     }
 
-    // --- UPDATED: Plays a random chase sound from the chaseSounds array ---
-    // This method now plays the sound via the NPC's own AudioSource and sets a flag so it only plays once.
     void PlayChaseSound()
     {
         if (chaseSounds != null && chaseSounds.Length > 0 && audioSource != null)
         {
             int index = Random.Range(0, chaseSounds.Length);
             audioSource.PlayOneShot(chaseSounds[index]);
-            chaseSoundPlayed = true;  // Prevent this sound from playing again
+            chaseSoundPlayed = true;
         }
+    }
+
+    void PlaySound(AudioClip clip)
+    {
+        if (clip != null)
+            audioSource.PlayOneShot(clip);
     }
 }
 

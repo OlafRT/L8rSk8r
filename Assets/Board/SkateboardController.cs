@@ -60,8 +60,8 @@ namespace StarterAssets
         public float lateralVelocityRetention = 0.0f; 
 
         [Header("Manual Air Rotation")]
-        public float rotationSensitivityX = 5f; // Controls rotation strength on X-axis (pitch)
-        public float rotationSensitivityY = 5f; // Controls rotation strength on Y-axis (yaw)     
+        public float rotationSensitivityX = 55f; // Controls rotation strength on X-axis (pitch)
+        public float rotationSensitivityY = 200f; // Controls rotation strength on Y-axis (yaw)     
 
         [Header("Jump Settings")]
         public float jumpForce = 10f; // Adjustable jump force
@@ -75,7 +75,7 @@ namespace StarterAssets
         private StarterAssetsInputs _input;
 
         // Ground check variables
-        private bool isGrounded;
+        public bool isGrounded;
         private RaycastHit groundHit;
 
         // For turning animation (to avoid repeatedly triggering the same animation)

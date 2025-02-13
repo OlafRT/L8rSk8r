@@ -3,9 +3,6 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(NavMeshAgent))]
-[RequireComponent(typeof(AudioSource))]
-[RequireComponent(typeof(Collider))]
 public class BossController : MonoBehaviour
 {
     //===================================================
@@ -43,21 +40,25 @@ public class BossController : MonoBehaviour
     public string swingAttackTrigger = "SwingAttack";
     public string kickAttackTrigger = "KickAttack";
     public string comboAttackTrigger = "ComboAttack";
-    public string leapAttackTrigger = "LeapAttack";
     
-    [Header("Leap Attack Settings")]
-    [Tooltip("How far (in world units) the boss will leap when performing a leap attack.")]
-    public float leapAttackDistance = 10f;
-    [Tooltip("Duration (in seconds) over which the boss leaps smoothly.")]
-    public float leapDuration = 1f;
-    [Tooltip("The peak height of the leap arc.")]
-    public float leapHeight = 5f;
+    [Header("New Attack: Sweep Sequence Settings")]
+    [Tooltip("Trigger name for the sweep-kick animation.")]
+    public string sweepKickTrigger = "SweepKick";
+    [Tooltip("Trigger name for the sweep-slash animation.")]
+    public string sweepSlashTrigger = "SweepSlash";
+    [Tooltip("Trigger name for the stun animation.")]
+    public string stunAnimationTrigger = "Stun";
+    [Tooltip("Duration (in seconds) of the stun state after the sweep sequence.")]
+    public float stunDuration = 3f;
+    [Tooltip("Audio clip for the sweep-kick.")]
+    public AudioClip sweepKickSound;
+    [Tooltip("Audio clip for the sweep-slash.")]
+    public AudioClip sweepSlashSound;
     
     [Header("Attack Sound Effects")]
     public AudioClip swingAttackSound;
     public AudioClip kickAttackSound;
     public AudioClip comboAttackSound;
-    public AudioClip leapAttackSound;
     
     [Header("Hit Reaction")]
     [Tooltip("Array of hit reaction animation triggers.")]
@@ -129,6 +130,10 @@ public class BossController : MonoBehaviour
     [Tooltip("Reference to the Music Manager (to switch music when combat starts/ends).")]
     public MusicManager musicManager;
     
+    [Header("Kill Sound")]
+    [Tooltip("Audio clip to play when the boss kills the player.")]
+    public AudioClip killSound;
+    
     //===================================================
     // COMPONENTS & INTERNAL
     //===================================================
@@ -142,6 +147,7 @@ public class BossController : MonoBehaviour
     private bool hasSpoken = false;
     private bool isSpeaking = false;
     private bool isImmune = false;
+    private bool isStunned = false;
     
     private bool phase80Played = false;
     private bool phase70Played = false;
@@ -150,6 +156,9 @@ public class BossController : MonoBehaviour
     
     // Flag to ensure we only trigger combat music once.
     private bool combatMusicStarted = false;
+    
+    // Static reference to track which boss dealt the final blow.
+    public static BossController lastAttacker;
     
     void Start()
     {
@@ -171,6 +180,13 @@ public class BossController : MonoBehaviour
     
     void Update()
     {
+        // If stunned, do not update movement or rotation.
+        if (isStunned)
+        {
+            agent.isStopped = true;
+            return;
+        }
+        
         if (currentState == BossState.Death)
             return;
         
@@ -209,6 +225,8 @@ public class BossController : MonoBehaviour
                     {
                         currentState = BossState.Attack;
                         agent.isStopped = true;
+                        // Set this boss as the last attacker.
+                        lastAttacker = this;
                         PerformAttack();
                     }
                 }
@@ -336,58 +354,34 @@ public class BossController : MonoBehaviour
         }
         else
         {
-            float rand = Random.value;
-            if (rand < 0.25f)
-            {
-                animator.SetTrigger(swingAttackTrigger);
-                PlaySound(swingAttackSound);
-            }
-            else if (rand < 0.5f)
-            {
-                animator.SetTrigger(kickAttackTrigger);
-                PlaySound(kickAttackSound);
-            }
-            else if (rand < 0.75f)
-            {
-                animator.SetTrigger(comboAttackTrigger);
-                PlaySound(comboAttackSound);
-            }
-            else
-            {
-                StartCoroutine(PerformLeapAttack());
-                return; // The leap coroutine handles its own cooldown.
-            }
+            // Instead of a leap attack, perform the new sweep sequence.
+            StartCoroutine(PerformSweepSequence());
+            return; // The coroutine handles its own cooldown.
         }
     }
     
-    //===============================
-    // LEAP ATTACK (Smooth Parabolic Arc)
-    //===============================
-    IEnumerator PerformLeapAttack()
+    /// <summary>
+    /// Performs the new sweep sequence: sweep-kick, then sweep-slash, then stun.
+    /// During the stun phase, the boss is prevented from moving or rotating.
+    /// </summary>
+    IEnumerator PerformSweepSequence()
     {
-        animator.SetTrigger(leapAttackTrigger);
-        PlaySound(leapAttackSound);
-        agent.isStopped = true;
+        // Sweep Kick Phase
+        animator.SetTrigger(sweepKickTrigger);
+        PlaySound(sweepKickSound);
+        yield return new WaitForSeconds(1.4f); // Adjust timing as needed.
         
-        Vector3 startPos = transform.position;
-        Vector3 direction = (player.position - transform.position).normalized;
-        Vector3 endPos = transform.position + direction * leapAttackDistance;
+        // Sweep Slash Phase
+        animator.SetTrigger(sweepSlashTrigger);
+        PlaySound(sweepSlashSound);
+        yield return new WaitForSeconds(2f); // Adjust timing as needed.
         
-        float elapsed = 0f;
-        while (elapsed < leapDuration)
-        {
-            float t = elapsed / leapDuration;
-            // Lerp horizontally between start and end.
-            Vector3 pos = Vector3.Lerp(startPos, endPos, t);
-            // Add a parabolic vertical arc.
-            pos.y += 4 * leapHeight * t * (1 - t);
-            transform.position = pos;
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-        transform.position = endPos;
+        // Stun Phase: Disable movement and rotation.
+        animator.SetTrigger(stunAnimationTrigger);
+        isStunned = true;
+        yield return new WaitForSeconds(stunDuration);
+        isStunned = false;
         
-        agent.isStopped = false;
         attackTimer = attackCooldown;
     }
     
@@ -511,7 +505,27 @@ public class BossController : MonoBehaviour
         if (bossHealthUIPanel != null)
             bossHealthUIPanel.SetActive(false);
         
+        // **NEW**: When the boss kills the player, play a kill sound.
+        // We'll assume the last attacker is this boss.
+        if (lastAttacker != null && lastAttacker == this)
+        {
+            PlayKillSound();
+            // Optionally clear the static reference.
+            lastAttacker = null;
+        }
+        
         Destroy(gameObject, destroyDelay);
+    }
+    
+    /// <summary>
+    /// Plays the kill sound for when the boss kills the player.
+    /// </summary>
+    public void PlayKillSound()
+    {
+        if (killSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(killSound);
+        }
     }
     
     //===============================
@@ -532,12 +546,3 @@ public class BossController : MonoBehaviour
         }
     }
 }
-
-
-
-
-
-
-
-
-
