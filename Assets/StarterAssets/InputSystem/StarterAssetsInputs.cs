@@ -13,7 +13,8 @@ namespace StarterAssets
         public bool jump;
         public bool sprint;
         public bool attack;
-        public bool grab; // NEW: For the grab input
+        public bool grab;
+        public bool Inventory;
         public Vector2 lookInput { get { return look; } }
 
         [Header("Movement Settings")]
@@ -51,7 +52,15 @@ namespace StarterAssets
         {
             AttackInput(value.isPressed);
         }
-
+        public void OnInventory(InputValue value)
+        {
+            bool isPressed = value.isPressed;
+            if(InventoryManager.Instance != null)
+            {
+                InventoryManager.Instance.SetInventoryOpen(isPressed);
+            }
+            Debug.Log($"Inventory Input Received: {isPressed}");
+        }
         // NEW: Input callback for grabbing.
         public void OnGrab(InputValue value)
         {
@@ -83,6 +92,11 @@ namespace StarterAssets
         {
             attack = newAttackState;
             Debug.Log($"Attack Input Received: {newAttackState}");
+        }
+        public void InventoryInput(bool newInventoryState)
+        {
+            Inventory = newInventoryState;
+            Debug.Log($"Inventory Input Received: {newInventoryState}");
         }
 
         // NEW: Set the grab input state.
