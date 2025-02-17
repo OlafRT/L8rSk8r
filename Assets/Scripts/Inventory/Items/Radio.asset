@@ -15,3 +15,4 @@ MonoBehaviour:
   itemName: A radio
   description: All we hear is Radio Gaga
   itemPrefab: {fileID: 7335016246798363302, guid: 2e3ebf6e0b3eda046beaf2b75ca327b4, type: 3}
+  previewScaleFactor: 300

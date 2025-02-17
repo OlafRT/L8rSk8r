@@ -15,3 +15,4 @@ MonoBehaviour:
   itemName: Test Mug
   description: A mug for testing the inventory system
   itemPrefab: {fileID: 4989642281083477512, guid: ba501e40e9a34fc4184171ab9af98db3, type: 3}
+  previewScaleFactor: 10

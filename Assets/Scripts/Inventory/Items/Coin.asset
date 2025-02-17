@@ -14,4 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemName: Coin
   description: Cash, money, mulah, this has many names, but a universal use!
-  itemPrefab: {fileID: 0}
+  itemPrefab: {fileID: 1291712926670701403, guid: e8440f912142bab4f943430f1f598f88, type: 3}
+  stackable: 1
+  maxStack: 99
+  previewScaleFactor: 5
