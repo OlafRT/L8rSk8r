@@ -10389,7 +10389,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1505121845598457496}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eb022a2807dfd834ab7b41f6b202ccdb, type: 3}
   m_Name: 
@@ -10419,6 +10419,8 @@ MonoBehaviour:
   lootPrefabs: []
   lootDropChance: 0.5
   lootDropOffset: 0.5
+  npcDialogue: {fileID: 0}
+  dialogueCanvas: {fileID: 0}
 --- !u!114 &1150437322535793455
 MonoBehaviour:
   m_ObjectHideFlags: 0
