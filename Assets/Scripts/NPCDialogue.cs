@@ -52,7 +52,7 @@ public class NPCDialogue : MonoBehaviour
             if (questIndicatorImage != null)
             {
                 bool hasItem = (InventoryManager.Instance != null && requiredItem != null &&
-                                InventoryManager.Instance.items.Contains(requiredItem));
+                                InventoryManager.Instance.HasItem(requiredItem));
                 questIndicatorImage.sprite = hasItem ? questionSprite : exclamationSprite;
             }
         }
@@ -70,7 +70,7 @@ public class NPCDialogue : MonoBehaviour
             questIndicator.SetActive(false);
 
         bool hasItem = (InventoryManager.Instance != null && requiredItem != null &&
-                        InventoryManager.Instance.items.Contains(requiredItem));
+                        InventoryManager.Instance.HasItem(requiredItem));
 
         if (!hasDelivered)
         {
@@ -108,7 +108,7 @@ public class NPCDialogue : MonoBehaviour
         if (questIndicator != null && !hasDelivered)
         {
             bool hasItem = (InventoryManager.Instance != null && requiredItem != null &&
-                            InventoryManager.Instance.items.Contains(requiredItem));
+                            InventoryManager.Instance.HasItem(requiredItem));
             if (questIndicatorImage != null)
                 questIndicatorImage.sprite = hasItem ? questionSprite : exclamationSprite;
             questIndicator.SetActive(true);
@@ -141,10 +141,10 @@ public class NPCDialogue : MonoBehaviour
     {
         ShowDialogue(deliveredDialogue);
 
-        // Remove the item from the player's inventory.
-        if (InventoryManager.Instance != null)
+        // Remove the item from the player's inventory (and update the UI).
+        if (InventoryManager.Instance != null && requiredItem != null)
         {
-            InventoryManager.Instance.items.Remove(requiredItem);
+            InventoryManager.Instance.RemoveItem(requiredItem);
         }
         hasDelivered = true;
 
@@ -167,7 +167,7 @@ public class NPCDialogue : MonoBehaviour
             speechBubble.SetActive(true);
             bubbleText.text = message;
         }
-        if(npcAnimator != null)
+        if (npcAnimator != null)
         {
             npcAnimator.SetBool("talk", true);
         }
@@ -182,12 +182,13 @@ public class NPCDialogue : MonoBehaviour
         {
             speechBubble.SetActive(false);
         }
-        if(npcAnimator != null)
+        if (npcAnimator != null)
         {
             npcAnimator.SetBool("talk", false);
         }
     }
 }
+
 
 
 

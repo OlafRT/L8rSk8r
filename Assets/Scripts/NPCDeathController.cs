@@ -25,7 +25,6 @@ public class NPCDeathController : MonoBehaviour
     public string hitAnimationTrigger = "Hit";
     [Tooltip("Trigger name for the death animation.")]
     public string deathAnimationTrigger = "Death";
-
     [Tooltip("Bool parameter in the Animator to lock the NPC in the death state.")]
     public string deadBoolName = "Dead";
 
@@ -48,6 +47,14 @@ public class NPCDeathController : MonoBehaviour
     [Header("Grounding Settings")]
     [Tooltip("Additional Y offset to adjust the NPC's final death position relative to the ground.")]
     public float groundOffset = 0f;
+
+    [Header("Loot Settings")]
+    [Tooltip("Array of loot prefabs that can drop when the NPC dies.")]
+    public GameObject[] lootPrefabs;
+    [Tooltip("Chance for each loot prefab to drop (0 to 1).")]
+    public float lootDropChance = 0.5f;
+    [Tooltip("Random offset range for dropped loot on the X and Z axes.")]
+    public float lootDropOffset = 0.5f;
 
     // Internal flag to prevent multiple death triggers.
     private bool isDead = false;
@@ -143,7 +150,7 @@ public class NPCDeathController : MonoBehaviour
     /// Handles the NPC's death: triggers the death animation and sound,
     /// disables movement/AI and collisions so the corpse doesn't slide,
     /// forces the NPC to align with the ground (plus an adjustable offset),
-    /// and schedules the destruction of the NPC.
+    /// drops loot, and schedules the destruction of the NPC.
     /// </summary>
     private void Die()
     {
@@ -201,10 +208,39 @@ public class NPCDeathController : MonoBehaviour
             rb.isKinematic = true;
         }
 
+        // Drop loot if configured.
+        DropLoot();
+
         // Finally, destroy the NPC GameObject after the specified delay.
         Destroy(gameObject, destroyDelay);
     }
+
+    /// <summary>
+    /// Attempts to drop loot. For each loot prefab in the array, rolls a random chance.
+    /// If the random value is less than or equal to lootDropChance, spawns the loot prefab at the NPC's position
+    /// with a small random offset.
+    /// </summary>
+    private void DropLoot()
+    {
+        if (lootPrefabs == null || lootPrefabs.Length == 0)
+            return;
+
+        foreach (GameObject loot in lootPrefabs)
+        {
+            float roll = Random.value; // Random.value gives a float between 0 and 1.
+            if (roll <= lootDropChance)
+            {
+                // Determine drop position with a slight random offset.
+                Vector3 dropPosition = transform.position;
+                dropPosition.x += Random.Range(-lootDropOffset, lootDropOffset);
+                dropPosition.z += Random.Range(-lootDropOffset, lootDropOffset);
+
+                Instantiate(loot, dropPosition, Quaternion.identity);
+            }
+        }
+    }
 }
+
 
 
 
