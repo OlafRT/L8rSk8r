@@ -23,9 +23,8 @@ public class BezierMover : MonoBehaviour
 
     private bool movementStarted = false;
     
+    // Save the starting position at activation.
     private Vector3 startPos;
-    private Vector3 controlPoint;
-    private Vector3 endPos;
 
     void Start()
     {
@@ -52,10 +51,8 @@ public class BezierMover : MonoBehaviour
             float distance = Vector3.Distance(transform.position, target.position);
             if (distance <= activationDistance)
             {
-                // Calculate movement parameters at the moment of activation.
+                // Record the position where the movement starts.
                 startPos = transform.position;
-                endPos = target.position;
-                controlPoint = (startPos + endPos) * 0.5f + Vector3.up * curveHeight;
                 
                 movementStarted = true;
                 StartCoroutine(MoveAlongBezier());
@@ -72,13 +69,18 @@ public class BezierMover : MonoBehaviour
         while (elapsedTime < duration)
         {
             float t = elapsedTime / duration;
-            transform.position = CalculateQuadraticBezierPoint(t, startPos, controlPoint, endPos);
+            
+            // Update endpoint and control point each frame based on the target's current position.
+            Vector3 currentEnd = target.position;
+            Vector3 currentControl = (startPos + currentEnd) * 0.5f + Vector3.up * curveHeight;
+            
+            transform.position = CalculateQuadraticBezierPoint(t, startPos, currentControl, currentEnd);
             elapsedTime += Time.deltaTime;
             yield return null;
         }
 
-        // Ensure the object lands exactly at the target position.
-        transform.position = endPos;
+        // Ensure the object lands exactly at the target's current position.
+        transform.position = target.position;
     }
 
     /// <summary>
@@ -93,5 +95,6 @@ public class BezierMover : MonoBehaviour
         return (uu * p0) + (2 * u * t * p1) + (tt * p2);
     }
 }
+
 
 
