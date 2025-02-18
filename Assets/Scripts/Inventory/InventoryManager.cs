@@ -12,7 +12,7 @@ public class InventoryManager : MonoBehaviour
     [Header("UI Setup")]
     // Parent container (e.g., a Panel with a GridLayoutGroup) for inventory slots.
     public Transform inventoryPanel;
-    // The prefab for each inventory slot (set up as described below).
+    // The prefab for each inventory slot.
     public GameObject inventorySlotPrefab;
     // The overall inventory UI panel (this should have a CanvasGroup attached).
     public GameObject inventoryUI;
@@ -82,18 +82,42 @@ public class InventoryManager : MonoBehaviour
     }
 
     /// <summary>
+    /// Returns true if the inventory contains at least one instance of the specified item.
+    /// </summary>
+    public bool HasItem(InventoryItem item)
+    {
+        return items.Exists(e => e.item.itemName == item.itemName);
+    }
+
+    /// <summary>
+    /// Returns true if the inventory contains at least the required quantity of the specified item.
+    /// </summary>
+    public bool HasItem(InventoryItem item, int requiredQuantity)
+    {
+        InventoryEntry entry = items.Find(e => e.item.itemName == item.itemName);
+        return (entry != null && entry.quantity >= requiredQuantity);
+    }
+
+    /// <summary>
     /// Removes one instance of the specified item from the inventory.
     /// For stackable items, decrements the quantity; if quantity reaches zero, removes the slot.
-    /// For non-stackable items, removes the slot.
     /// </summary>
     public void RemoveItem(InventoryItem item)
+    {
+        RemoveItem(item, 1);
+    }
+
+    /// <summary>
+    /// Removes the specified quantity of the item from the inventory.
+    /// </summary>
+    public void RemoveItem(InventoryItem item, int quantityToRemove)
     {
         InventoryEntry entry = items.Find(e => e.item.itemName == item.itemName);
         if (entry != null)
         {
             if (entry.item.stackable)
             {
-                entry.quantity--;
+                entry.quantity -= quantityToRemove;
                 if (entry.quantity <= 0)
                 {
                     if (entry.slot != null)
@@ -113,14 +137,6 @@ public class InventoryManager : MonoBehaviour
                 items.Remove(entry);
             }
         }
-    }
-
-    /// <summary>
-    /// Returns true if the inventory contains the specified item.
-    /// </summary>
-    public bool HasItem(InventoryItem item)
-    {
-        return items.Exists(e => e.item.itemName == item.itemName);
     }
 
     /// <summary>
@@ -150,6 +166,7 @@ public class InventoryManager : MonoBehaviour
         }
     }
 }
+
 
 
 

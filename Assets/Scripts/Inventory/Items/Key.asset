@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0df4226f2047ff4f8511182e3e6e252, type: 3}
+  m_Name: Key
+  m_EditorClassIdentifier: 
+  itemName: Key
+  description: 'Key to Bree''s house. Worn, but faithful old key. '
+  itemPrefab: {fileID: 4589163406942825262, guid: fa0d88d7b1431844e857d40454f24518, type: 3}
+  stackable: 0
+  maxStack: 1
+  previewScaleFactor: 1

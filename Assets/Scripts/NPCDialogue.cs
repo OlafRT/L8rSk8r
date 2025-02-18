@@ -11,15 +11,20 @@ public class NPCDialogue : MonoBehaviour
 
     [Header("Item & Delivery")]
     public InventoryItem requiredItem;
-    public GameObject toggleGameObject; // e.g., a door to toggle
+    [Tooltip("Required quantity of the quest item (e.g., 5 coins).")]
+    public int requiredQuantity = 1;
+    [Tooltip("Array of GameObjects to toggle (e.g., doors) when the item is delivered.")]
+    public GameObject[] toggleGameObjects;
 
     [Header("Speech Bubble UI (Dialogue)")]
     [Tooltip("The UI element that displays dialogue (e.g., a world-space Panel with Text).")]
     public GameObject speechBubble;   // This is the speech bubble element (not the entire container)
     [Tooltip("The Text component inside the speech bubble.")]
     public Text bubbleText;
-    [Tooltip("Delay (in seconds) for dialogue transitions.")]
+    [Tooltip("Delay (in seconds) for dialogue transitions (for quest dialogue).")]
     public float dialogueDelay = 3f;
+    [Tooltip("Delay (in seconds) after delivered dialogue before hiding the speech bubble.")]
+    public float deliveryHideDelay = 1f;
 
     [Header("Quest Indicator UI")]
     [Tooltip("The quest indicator UI (e.g., an Image) that displays the quest icon.")]
@@ -34,6 +39,19 @@ public class NPCDialogue : MonoBehaviour
     [Header("Animator")]
     [Tooltip("The NPC's Animator Controller with a 'talk' parameter.")]
     public Animator npcAnimator;
+
+    [Header("Optional Delivery Animation")]
+    [Tooltip("Set to true if you want to play an additional animation on quest delivery.")]
+    public bool playDeliveryAnimation = false;
+    [Tooltip("Animation trigger name to use on quest delivery.")]
+    public string deliveryAnimationTrigger = "Delivery";
+
+    [Header("Sound Settings")]
+    [Tooltip("Sound to play when the quest is delivered.")]
+    public AudioClip deliverySound;
+    [Tooltip("Volume for the delivery sound (0 to 1).")]
+    [Range(0f, 1f)]
+    public float deliverySoundVolume = 1f;
 
     private bool hasDelivered = false;
     private bool isPlayerInTrigger = false;
@@ -52,7 +70,7 @@ public class NPCDialogue : MonoBehaviour
             if (questIndicatorImage != null)
             {
                 bool hasItem = (InventoryManager.Instance != null && requiredItem != null &&
-                                InventoryManager.Instance.HasItem(requiredItem));
+                                InventoryManager.Instance.HasItem(requiredItem, requiredQuantity));
                 questIndicatorImage.sprite = hasItem ? questionSprite : exclamationSprite;
             }
         }
@@ -70,13 +88,13 @@ public class NPCDialogue : MonoBehaviour
             questIndicator.SetActive(false);
 
         bool hasItem = (InventoryManager.Instance != null && requiredItem != null &&
-                        InventoryManager.Instance.HasItem(requiredItem));
+                        InventoryManager.Instance.HasItem(requiredItem, requiredQuantity));
 
         if (!hasDelivered)
         {
             if (hasItem)
             {
-                // Run the delivery sequence if the player has the item.
+                // Run the delivery sequence if the player has the required quantity.
                 dialogueCoroutine = StartCoroutine(DeliverItemSequence());
             }
             else
@@ -108,7 +126,7 @@ public class NPCDialogue : MonoBehaviour
         if (questIndicator != null && !hasDelivered)
         {
             bool hasItem = (InventoryManager.Instance != null && requiredItem != null &&
-                            InventoryManager.Instance.HasItem(requiredItem));
+                            InventoryManager.Instance.HasItem(requiredItem, requiredQuantity));
             if (questIndicatorImage != null)
                 questIndicatorImage.sprite = hasItem ? questionSprite : exclamationSprite;
             questIndicator.SetActive(true);
@@ -118,7 +136,7 @@ public class NPCDialogue : MonoBehaviour
     /// <summary>
     /// Dialogue sequence when the player does not have the required item.
     /// It shows the greeting, then transitions to the quest dialogue,
-    /// which remains until the player leaves the trigger.
+    /// which remains until the player exits the trigger.
     /// </summary>
     IEnumerator QuestDialogueSequence()
     {
@@ -134,26 +152,45 @@ public class NPCDialogue : MonoBehaviour
     }
 
     /// <summary>
-    /// Dialogue sequence for when the player has the required item.
-    /// It shows the delivery dialogue, removes the item, and toggles the assigned GameObject.
+    /// Dialogue sequence for when the player has the required quantity of the required item.
+    /// It shows the delivery dialogue, removes the item(s), toggles the assigned GameObjects,
+    /// optionally plays a delivery animation and sound, then hides the speech bubble after a short delay.
     /// </summary>
     IEnumerator DeliverItemSequence()
     {
         ShowDialogue(deliveredDialogue);
 
-        // Remove the item from the player's inventory (and update the UI).
+        // Play the delivery sound, if assigned.
+        if (deliverySound != null)
+        {
+            AudioSource.PlayClipAtPoint(deliverySound, transform.position, deliverySoundVolume);
+        }
+
+        // Remove the required quantity of the item from the player's inventory.
         if (InventoryManager.Instance != null && requiredItem != null)
         {
-            InventoryManager.Instance.RemoveItem(requiredItem);
+            InventoryManager.Instance.RemoveItem(requiredItem, requiredQuantity);
         }
         hasDelivered = true;
 
-        // Toggle the assigned GameObject (if provided).
-        if (toggleGameObject != null)
+        // Toggle each of the assigned GameObjects.
+        if (toggleGameObjects != null)
         {
-            toggleGameObject.SetActive(!toggleGameObject.activeSelf);
+            foreach (GameObject obj in toggleGameObjects)
+            {
+                if (obj != null)
+                    obj.SetActive(!obj.activeSelf);
+            }
         }
-        yield return new WaitForSeconds(dialogueDelay);
+
+        // Optionally, play the delivery animation.
+        if (playDeliveryAnimation && npcAnimator != null)
+        {
+            npcAnimator.SetTrigger(deliveryAnimationTrigger);
+        }
+
+        // Wait for the specified delay, then hide the speech bubble.
+        yield return new WaitForSeconds(deliveryHideDelay);
         HideDialogue();
     }
 
@@ -188,6 +225,9 @@ public class NPCDialogue : MonoBehaviour
         }
     }
 }
+
+
+
 
 
 
