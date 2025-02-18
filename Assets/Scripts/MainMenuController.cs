@@ -6,8 +6,8 @@ using System.Collections;
 public class MainMenuController : MonoBehaviour
 {
     [SerializeField] private string newGameSceneName; // Scene to load
-    [SerializeField] private GameObject loadingScreen; // Loading screen Canvas prefab
-    [SerializeField] private Slider progressBar; // Optional: Progress bar UI
+    [SerializeField] private GameObject loadingScreen;  // Loading screen Canvas prefab
+    [SerializeField] private Slider progressBar;          // Optional: Progress bar UI
 
     public void OnNewGamePressed()
     {
@@ -38,23 +38,43 @@ public class MainMenuController : MonoBehaviour
         asyncLoad.allowSceneActivation = false; // Wait before activating the scene
 
         // Update loading progress (optional)
-        while (!asyncLoad.isDone)
+        while (asyncLoad.progress < 0.9f)
         {
-            float progress = Mathf.Clamp01(asyncLoad.progress / 0.9f); // Normalize progress
             if (progressBar != null)
             {
-                progressBar.value = progress;
+                // Normalize progress (asyncLoad.progress maxes at 0.9 before activation)
+                progressBar.value = asyncLoad.progress / 0.9f;
             }
+            yield return null;
+        }
 
-            // Activate the scene when fully loaded
-            if (asyncLoad.progress >= 0.9f)
-            {
-                // Optional: Wait for a short period to show the progress bar filling
-                yield return new WaitForSeconds(0.5f); // Adjust this duration as needed
-                asyncLoad.allowSceneActivation = true;
-            }
+        // Ensure progress bar is filled
+        if (progressBar != null)
+        {
+            progressBar.value = 1f;
+        }
 
-            yield return null; // Wait for the next frame
+        // Optional: wait a bit for the player to see the progress bar filling
+        yield return new WaitForSeconds(0.5f);
+
+        // Allow scene activation
+        asyncLoad.allowSceneActivation = true;
+
+        // Wait until the scene is fully loaded and activated
+        yield return new WaitUntil(() => asyncLoad.isDone);
+
+        // Now that the scene is loaded, get it by name
+        Scene newScene = SceneManager.GetSceneByName(sceneName);
+        if (newScene.IsValid())
+        {
+            // Set the new scene as the active scene
+            SceneManager.SetActiveScene(newScene);
+            // Force an update of the lighting environment (skybox, ambient light, etc.)
+            DynamicGI.UpdateEnvironment();
+        }
+        else
+        {
+            Debug.LogError($"Scene '{sceneName}' is not loaded properly.");
         }
     }
 
@@ -64,4 +84,6 @@ public class MainMenuController : MonoBehaviour
         Application.Quit();
     }
 }
+
+
 
