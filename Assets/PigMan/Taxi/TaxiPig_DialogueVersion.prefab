@@ -330,6 +330,7 @@ GameObject:
   - component: {fileID: 1499095676168013027}
   - component: {fileID: 4125457591792580931}
   - component: {fileID: 925319594099576481}
+  - component: {fileID: -1380080671636664691}
   m_Layer: 0
   m_Name: TaxiPig_DialogueVersion
   m_TagString: Untagged
@@ -657,6 +658,27 @@ MonoBehaviour:
   swordDamageDealers:
   - {fileID: 2322594585372255443}
   kickDamageDealers: []
+--- !u!135 &-1380080671636664691
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1040044021181846820}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 14.115468
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &1121178597887865632
 GameObject:
   m_ObjectHideFlags: 0
