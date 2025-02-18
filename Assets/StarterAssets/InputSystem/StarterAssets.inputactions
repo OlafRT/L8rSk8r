@@ -291,7 +291,7 @@
                 {
                     "name": "",
                     "id": "49588e25-17cc-43b0-8b85-e6e3d86f1798",
-                    "path": "<Gamepad>/dpad/up",
+                    "path": "<Gamepad>/buttonNorth",
                     "interactions": "",
                     "processors": "",
                     "groups": ";Gamepad;Xbox Controller;PS4 Controller",
