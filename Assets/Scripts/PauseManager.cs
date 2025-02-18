@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Video;
-using UnityEngine.SceneManagement; // Add this for scene management
+using UnityEngine.SceneManagement;
 
 public class PauseManager : MonoBehaviour
 {
@@ -12,7 +12,6 @@ public class PauseManager : MonoBehaviour
 
     private bool isPaused = false;
     private List<AudioSource> allAudioSources = new List<AudioSource>();
-    private ParticleSystem[] allParticleSystems;
     private VideoPlayer[] allVideoPlayers;
 
     // Dictionary to keep track of video player's play state
@@ -24,15 +23,14 @@ public class PauseManager : MonoBehaviour
         if (pauseMenuCanvas != null)
             pauseMenuCanvas.SetActive(false);
 
-        // Find all audio sources, particle systems, and video players in the scene
+        // Find all audio sources and video players in the scene
         allAudioSources.AddRange(FindObjectsOfType<AudioSource>());
-        allParticleSystems = FindObjectsOfType<ParticleSystem>();
         allVideoPlayers = FindObjectsOfType<VideoPlayer>();
 
         // Initialize the video player play states
         foreach (var videoPlayer in allVideoPlayers)
         {
-            videoPlayerPlayStates[videoPlayer] = false; // Assume all are initially not playing
+            videoPlayerPlayStates[videoPlayer] = videoPlayer.isPlaying;
         }
     }
 
@@ -53,14 +51,18 @@ public class PauseManager : MonoBehaviour
         Cursor.lockState = isPaused ? CursorLockMode.None : CursorLockMode.Locked;
         Cursor.visible = isPaused;
 
-        // Refresh audio sources, particle systems, and video players
-        allAudioSources = new List<AudioSource>(FindObjectsOfType<AudioSource>()); // Reinitialize the list
-        allParticleSystems = FindObjectsOfType<ParticleSystem>();
+        // Refresh the lists if necessary
+        allAudioSources = new List<AudioSource>(FindObjectsOfType<AudioSource>());
         allVideoPlayers = FindObjectsOfType<VideoPlayer>();
 
-        // Pause or resume other game elements
+        // Update the video player play states for any new video players
+        foreach (var vp in allVideoPlayers)
+        {
+            if (!videoPlayerPlayStates.ContainsKey(vp))
+                videoPlayerPlayStates[vp] = vp.isPlaying;
+        }
+
         PauseOrResumeAudio(isPaused);
-        PauseOrResumeParticles(isPaused);
         PauseOrResumeVideos(isPaused);
 
         // Show or hide pause menu canvas
@@ -82,33 +84,31 @@ public class PauseManager : MonoBehaviour
         }
     }
 
-    void PauseOrResumeParticles(bool pause)
-    {
-        foreach (ParticleSystem particleSystem in allParticleSystems)
-        {
-            if (pause)
-                particleSystem.Pause();
-            else
-                particleSystem.Play();
-        }
-    }
-
     void PauseOrResumeVideos(bool pause)
     {
-        foreach (VideoPlayer videoPlayer in allVideoPlayers)
+        if (pause)
         {
-            if (pause)
+            foreach (VideoPlayer videoPlayer in allVideoPlayers)
             {
-                // Store the current play state before pausing
-                videoPlayerPlayStates[videoPlayer] = videoPlayer.isPlaying;
-                videoPlayer.Pause();
-            }
-            else
-            {
-                // Resume only if it was playing before pause
-                if (videoPlayerPlayStates[videoPlayer])
+                if (videoPlayer != null)
                 {
-                    videoPlayer.Play();
+                    // Store the current play state then pause
+                    videoPlayerPlayStates[videoPlayer] = videoPlayer.isPlaying;
+                    videoPlayer.Pause();
+                }
+            }
+        }
+        else
+        {
+            foreach (VideoPlayer videoPlayer in allVideoPlayers)
+            {
+                if (videoPlayer != null)
+                {
+                    // Resume only if it was playing before pause
+                    if (videoPlayerPlayStates.ContainsKey(videoPlayer) && videoPlayerPlayStates[videoPlayer])
+                    {
+                        videoPlayer.Play();
+                    }
                 }
             }
         }
@@ -116,7 +116,7 @@ public class PauseManager : MonoBehaviour
 
     public void ExitGame()
     {
-        // Code to exit the game
+        Debug.Log("Exiting game...");
         Application.Quit();
     }
 
@@ -140,5 +140,6 @@ public class PauseManager : MonoBehaviour
         }
     }
 }
+
 
 
