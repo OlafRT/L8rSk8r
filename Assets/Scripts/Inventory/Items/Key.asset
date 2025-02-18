@@ -17,4 +17,4 @@ MonoBehaviour:
   itemPrefab: {fileID: 4589163406942825262, guid: fa0d88d7b1431844e857d40454f24518, type: 3}
   stackable: 0
   maxStack: 1
-  previewScaleFactor: 1
+  previewScaleFactor: 1.2
