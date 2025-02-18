@@ -20298,6 +20298,7 @@ MonoBehaviour:
   animator: {fileID: 6150582284773685145}
   hitAnimationTrigger: Hit
   deathAnimationTrigger: Death
+  deadBoolName: Dead
   destroyDelay: 15
   weaponLayer:
     serializedVersion: 2
@@ -20309,6 +20310,11 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 5f924cfbaa60c554dbcdedca99b90cbf, type: 3}
   deathSound: {fileID: 8300000, guid: 38414f9f94e77124583b415d0e63d904, type: 3}
   groundOffset: 0.2
+  lootPrefabs: []
+  lootDropChance: 0.5
+  lootDropOffset: 0.5
+  npcDialogue: {fileID: 0}
+  dialogueCanvas: {fileID: 0}
 --- !u!114 &6577214234341196166
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -20332,6 +20338,13 @@ MonoBehaviour:
   idleTime: 10
   animator: {fileID: 6150582284773685145}
   chaseSounds: []
+  attackCooldown: 3
+  attack1Trigger: Attack1
+  attack2Trigger: Attack2
+  attack3Trigger: Attack3
+  attack1Sound: {fileID: 0}
+  attack2Sound: {fileID: 0}
+  attack3Sound: {fileID: 0}
 --- !u!136 &8429255396055642952
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -25898,7 +25911,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2712851889859151069, guid: a78dfe861d20c2b46b42f1b23a409aa7, type: 3}
+  - {fileID: 2100000, guid: 008419564c072f84fb900478ccaa9642, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -26534,7 +26547,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2712851889859151069, guid: a78dfe861d20c2b46b42f1b23a409aa7, type: 3}
+  - {fileID: 2100000, guid: 008419564c072f84fb900478ccaa9642, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

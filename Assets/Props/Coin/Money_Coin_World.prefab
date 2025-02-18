@@ -134,7 +134,7 @@ MeshCollider:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 1024
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
@@ -162,7 +162,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.03
+  m_Radius: 0.013905303
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &3001293810181047059
 Rigidbody:

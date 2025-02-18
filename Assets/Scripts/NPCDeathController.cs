@@ -56,6 +56,12 @@ public class NPCDeathController : MonoBehaviour
     [Tooltip("Random offset range for dropped loot on the X and Z axes.")]
     public float lootDropOffset = 0.5f;
 
+    [Header("Dialogue Settings")]
+    [Tooltip("Reference to the NPCDialogue component that should be disabled on death.")]
+    public NPCDialogue npcDialogue;
+    [Tooltip("Reference to the dialogue canvas (child of the NPC) that displays dialogue.")]
+    public GameObject dialogueCanvas;
+
     // Internal flag to prevent multiple death triggers.
     private bool isDead = false;
 
@@ -106,6 +112,7 @@ public class NPCDeathController : MonoBehaviour
     /// <summary>
     /// Applies damage to the NPC. If still alive, plays the hit animation, particle effect, and a random hit sound.
     /// On the final hit, plays death particle effects and triggers the death sequence.
+    /// Also disables the dialogue canvas so that any active dialogue disappears.
     /// </summary>
     public void TakeDamage(int damage)
     {
@@ -113,6 +120,10 @@ public class NPCDeathController : MonoBehaviour
             return;
 
         currentHealth -= damage;
+
+        // If the NPC is hit while still alive, disable its dialogue canvas.
+        if (dialogueCanvas != null)
+            dialogueCanvas.SetActive(false);
 
         if (currentHealth > 0)
         {
@@ -148,7 +159,7 @@ public class NPCDeathController : MonoBehaviour
 
     /// <summary>
     /// Handles the NPC's death: triggers the death animation and sound,
-    /// disables movement/AI and collisions so the corpse doesn't slide,
+    /// disables movement/AI, disables the dialogue system and its canvas,
     /// forces the NPC to align with the ground (plus an adjustable offset),
     /// drops loot, and schedules the destruction of the NPC.
     /// </summary>
@@ -157,6 +168,17 @@ public class NPCDeathController : MonoBehaviour
         if (isDead)
             return;
         isDead = true;
+
+        // Disable the dialogue system.
+        if (npcDialogue != null)
+        {
+            npcDialogue.enabled = false;
+        }
+        // Also disable the dialogue canvas.
+        if (dialogueCanvas != null)
+        {
+            dialogueCanvas.SetActive(false);
+        }
 
         // Set the 'Dead' bool on the animator, so transitions can't exit the death state.
         if (animator != null)
@@ -240,6 +262,9 @@ public class NPCDeathController : MonoBehaviour
         }
     }
 }
+
+
+
 
 
 
