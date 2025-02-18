@@ -10,6 +10,9 @@ public class PauseManager : MonoBehaviour
     public GameObject pauseMenuCanvas;
     public string mainMenuSceneName; // Set this in the Inspector
 
+    // Field for the keybindings panel.
+    public GameObject keybindingsPanel;
+
     private bool isPaused = false;
     private List<AudioSource> allAudioSources = new List<AudioSource>();
     private VideoPlayer[] allVideoPlayers;
@@ -22,6 +25,10 @@ public class PauseManager : MonoBehaviour
         // Initially hide the pause menu
         if (pauseMenuCanvas != null)
             pauseMenuCanvas.SetActive(false);
+
+        // Also hide the keybindings panel initially (if assigned)
+        if (keybindingsPanel != null)
+            keybindingsPanel.SetActive(false);
 
         // Find all audio sources and video players in the scene
         allAudioSources.AddRange(FindObjectsOfType<AudioSource>());
@@ -64,6 +71,10 @@ public class PauseManager : MonoBehaviour
 
         PauseOrResumeAudio(isPaused);
         PauseOrResumeVideos(isPaused);
+
+        // Ensure the keybindings panel is hidden when toggling pause.
+        if (keybindingsPanel != null)
+            keybindingsPanel.SetActive(false);
 
         // Show or hide pause menu canvas
         if (pauseMenuCanvas != null)
@@ -139,7 +150,22 @@ public class PauseManager : MonoBehaviour
             Debug.LogWarning("Main menu scene name is not set in the Inspector!");
         }
     }
+
+    // Function to toggle the keybindings panel.
+    public void ToggleKeybindingsPanel()
+    {
+        if (keybindingsPanel != null)
+        {
+            // Toggle active state: if active, hide it; if hidden, show it.
+            keybindingsPanel.SetActive(!keybindingsPanel.activeSelf);
+        }
+        else
+        {
+            Debug.LogWarning("Keybindings panel is not assigned in the Inspector!");
+        }
+    }
 }
+
 
 
 

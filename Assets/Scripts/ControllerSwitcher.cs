@@ -156,6 +156,13 @@ public class ControllerSwitcher : MonoBehaviour
 
         // Update the mode flag.
         isSkateboardActive = true;
+
+        // Reset the input action state to avoid carrying over inputs.
+        if (switchAction != null)
+        {
+            switchAction.Disable();
+            switchAction.Enable();
+        }
     }
 
     private IEnumerator SwitchToThirdPersonMode()
@@ -212,6 +219,13 @@ public class ControllerSwitcher : MonoBehaviour
 
         // Update the mode flag.
         isSkateboardActive = false;
+
+        // Reset the input action state.
+        if (switchAction != null)
+        {
+            switchAction.Disable();
+            switchAction.Enable();
+        }
     }
 
     private void EnableDisableGameObjects(GameObject[] objects, bool enable)
