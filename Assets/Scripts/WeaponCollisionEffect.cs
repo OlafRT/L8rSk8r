@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
 public class ImpactReceiver : MonoBehaviour
 {
@@ -28,6 +28,14 @@ public class ImpactReceiver : MonoBehaviour
     [Tooltip("Particle effects to play when hit.")]
     public ParticleSystem[] collisionEffects;
 
+    [Header("Loot Settings")]
+    [Tooltip("Array of loot prefabs that can drop when the object is destroyed. Assign prefab assets from your project.")]
+    public GameObject[] lootPrefabs;
+    [Tooltip("Chance for each loot prefab to drop (0 to 1).")]
+    public float lootDropChance = 0.5f;
+    [Tooltip("Random offset range for dropped loot on the X and Z axes.")]
+    public float lootDropOffset = 0.5f;
+
     // Internal state
     private bool isEffectPlaying = false;
     private int hitCount = 0;
@@ -47,54 +55,39 @@ public class ImpactReceiver : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        // 1) Check if the collider is on the designated weapon layer.
+        // 1) Check if the colliding object is on the designated weapon layer.
         if (!IsOnWeaponLayer(collision.gameObject))
             return;
 
-        // 2) Check if the character *really is* attacking right now.
+        // 2) Check if the colliding object's root is actually attacking.
         if (!IsAttacking(collision.gameObject))
             return;
 
-        // 3) Conditions met => play impact sound with pitch variation, effects & increment hit count.
+        // 3) Conditions met: play impact sound (with pitch variation), particle effects, and increment hit count.
         if (impactAudioSource != null && impactClips != null && impactClips.Length > 0)
         {
-            // Select a random impact clip from the array.
             AudioClip selectedClip = impactClips[Random.Range(0, impactClips.Length)];
-
-            // Store the original pitch so it can be restored later.
             float originalPitch = impactAudioSource.pitch;
-            // Set a random pitch within the desired range.
             impactAudioSource.pitch = Random.Range(minPitch, maxPitch);
             impactAudioSource.PlayOneShot(selectedClip);
-            // Restore the original pitch.
             impactAudioSource.pitch = originalPitch;
         }
 
-        // Play particle effects at the collision contact point.
         PlayEffectsAtPosition(collision.contacts[0].point);
-
-        // Increment hit count.
         hitCount++;
 
-        // 4) Destroy the object if we've reached the required number of hits.
+        // 4) If hit count reaches or exceeds hitsToDestroy, start the destruction sequence.
         if (hitCount >= hitsToDestroy)
         {
             StartCoroutine(DestroyObjectAfterEffects());
         }
     }
 
-    /// <summary>
-    /// Checks if the collision’s GameObject is on the “weapon” layer.
-    /// </summary>
     private bool IsOnWeaponLayer(GameObject obj)
     {
         return (weaponLayer.value & (1 << obj.layer)) != 0;
     }
 
-    /// <summary>
-    /// Returns true if the collision’s root or parent has an Animator 
-    /// whose "attackingBoolName" is currently true.
-    /// </summary>
     private bool IsAttacking(GameObject obj)
     {
         Animator anim = obj.transform.root.GetComponentInChildren<Animator>();
@@ -103,9 +96,6 @@ public class ImpactReceiver : MonoBehaviour
         return anim.GetBool(attackingBoolName);
     }
 
-    /// <summary>
-    /// Plays all assigned particle effects at the specified position (if not already playing).
-    /// </summary>
     private void PlayEffectsAtPosition(Vector3 position)
     {
         if (collisionEffects == null || collisionEffects.Length == 0)
@@ -114,25 +104,17 @@ public class ImpactReceiver : MonoBehaviour
         if (!isEffectPlaying)
         {
             float longestDuration = 0f;
-
             foreach (ParticleSystem ps in collisionEffects)
             {
                 if (ps == null)
                     continue;
-
-                // Move the effect to the collision point & play.
                 ps.transform.position = position;
                 ps.Play();
-
-                // Track the longest effect duration.
                 float duration = ps.main.duration;
                 if (duration > longestDuration)
                     longestDuration = duration;
             }
-
             isEffectPlaying = true;
-
-            // Reset the effect flag after the longest effect finishes.
             if (longestDuration > 0f)
                 Invoke(nameof(ResetEffectFlag), longestDuration);
             else
@@ -145,35 +127,60 @@ public class ImpactReceiver : MonoBehaviour
         isEffectPlaying = false;
     }
 
-    /// <summary>
-    /// Waits for the (longest) particle effect to finish, unparents them, then destroys the object.
-    /// </summary>
     private IEnumerator DestroyObjectAfterEffects()
     {
-        // Find the longest effect duration.
-        float longestDuration = 0f;
-        foreach (ParticleSystem ps in collisionEffects)
-        {
-            if (ps == null)
-                continue;
-            float duration = ps.main.duration;
-            if (duration > longestDuration)
-                longestDuration = duration;
-        }
+        // Drop loot before destruction.
+        DropLoot();
 
-        // Wait for that duration.
+        // Determine longest duration among collision effects.
+        float longestDuration = 0f;
+        if (collisionEffects != null)
+        {
+            foreach (ParticleSystem ps in collisionEffects)
+            {
+                if (ps == null)
+                    continue;
+                float duration = ps.main.duration;
+                if (duration > longestDuration)
+                    longestDuration = duration;
+            }
+        }
         yield return new WaitForSeconds(longestDuration);
 
-        // Unparent each ParticleSystem so it remains after the object is destroyed.
-        foreach (ParticleSystem ps in collisionEffects)
+        // Unparent particle effects so they persist after destruction.
+        if (collisionEffects != null)
         {
-            if (ps == null)
-                continue;
-            ps.transform.SetParent(null, true);
+            foreach (ParticleSystem ps in collisionEffects)
+            {
+                if (ps == null)
+                    continue;
+                ps.transform.SetParent(null, true);
+            }
         }
 
-        // Finally, destroy the main GameObject.
+        // Destroy the object.
         Destroy(gameObject);
     }
+
+    private void DropLoot()
+    {
+        if (lootPrefabs == null || lootPrefabs.Length == 0)
+            return;
+
+        foreach (GameObject lootPrefab in lootPrefabs)
+        {
+            if (lootPrefab == null)
+                continue;
+            float roll = Random.value;
+            if (roll <= lootDropChance)
+            {
+                Vector3 dropPosition = transform.position;
+                dropPosition.x += Random.Range(-lootDropOffset, lootDropOffset);
+                dropPosition.z += Random.Range(-lootDropOffset, lootDropOffset);
+                Instantiate(lootPrefab, dropPosition, Quaternion.identity);
+            }
+        }
+    }
 }
+
 
