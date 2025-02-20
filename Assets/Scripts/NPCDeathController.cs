@@ -49,7 +49,7 @@ public class NPCDeathController : MonoBehaviour
     public float groundOffset = 0f;
 
     [Header("Loot Settings")]
-    [Tooltip("Array of loot prefabs that can drop when the NPC dies.")]
+    [Tooltip("Array of loot prefabs that can drop when the NPC dies. Assign prefab assets from your project.")]
     public GameObject[] lootPrefabs;
     [Tooltip("Chance for each loot prefab to drop (0 to 1).")]
     public float lootDropChance = 0.5f;
@@ -247,8 +247,11 @@ public class NPCDeathController : MonoBehaviour
         if (lootPrefabs == null || lootPrefabs.Length == 0)
             return;
 
-        foreach (GameObject loot in lootPrefabs)
+        foreach (GameObject lootPrefab in lootPrefabs)
         {
+            if (lootPrefab == null)
+                continue;
+
             float roll = Random.value; // Random.value gives a float between 0 and 1.
             if (roll <= lootDropChance)
             {
@@ -257,11 +260,13 @@ public class NPCDeathController : MonoBehaviour
                 dropPosition.x += Random.Range(-lootDropOffset, lootDropOffset);
                 dropPosition.z += Random.Range(-lootDropOffset, lootDropOffset);
 
-                Instantiate(loot, dropPosition, Quaternion.identity);
+                // Instantiate the loot prefab at the drop position.
+                Instantiate(lootPrefab, dropPosition, Quaternion.identity);
             }
         }
     }
 }
+
 
 
 
