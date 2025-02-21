@@ -31,6 +31,8 @@ public class MainMenuController : MonoBehaviour
         if (loadingScreen != null)
         {
             loadingScreen.SetActive(true);
+            // Force a frame to update the UI so the loading screen appears immediately
+            yield return null;
         }
 
         // Start loading the scene asynchronously

@@ -15433,6 +15433,7 @@ MonoBehaviour:
   lootDropOffset: 0.5
   npcDialogue: {fileID: 0}
   dialogueCanvas: {fileID: 0}
+  hitReactionCooldown: 2.5
 --- !u!114 &7455551645110643045
 MonoBehaviour:
   m_ObjectHideFlags: 0

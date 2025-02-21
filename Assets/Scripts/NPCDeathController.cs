@@ -65,6 +65,12 @@ public class NPCDeathController : MonoBehaviour
     // Internal flag to prevent multiple death triggers.
     private bool isDead = false;
 
+    [Header("Hit Reaction Cooldown")]
+    [Tooltip("Time in seconds before the NPC can play the flinch animation again.")]
+    public float hitReactionCooldown = 0.5f; // You can tweak this in the Inspector.
+
+    private bool isOnHitCooldown = false;
+
     private void Start()
     {
         currentHealth = maxHealth;
@@ -127,19 +133,30 @@ public class NPCDeathController : MonoBehaviour
 
         if (currentHealth > 0)
         {
-            // Play hit reaction animation.
-            if (animator != null)
-                animator.SetTrigger(hitAnimationTrigger);
+            // ALWAYS show the particle effect and play a hit sound, 
+            // so the player knows they've connected, even during cooldown.
 
-            // Play the hit particle effect.
+            // Particle effect
             if (hitEffect != null)
+            {
                 hitEffect.Play();
+            }
 
-            // Play a random hit sound.
+            // Sound
             if (hitSounds != null && hitSounds.Length > 0)
             {
                 int index = Random.Range(0, hitSounds.Length);
                 AudioSource.PlayClipAtPoint(hitSounds[index], transform.position);
+            }
+
+            // Only play the flinch animation if we're NOT on cooldown.
+            if (!isOnHitCooldown)
+            {
+                if (animator != null)
+                    animator.SetTrigger(hitAnimationTrigger);
+
+                // Start the cooldown so we won't flinch again immediately.
+                StartCoroutine(HitReactionCooldownRoutine());
             }
         }
         else
@@ -155,6 +172,16 @@ public class NPCDeathController : MonoBehaviour
             }
             Die();
         }
+    }
+
+    /// <summary>
+    /// Coroutine that enforces a delay before the NPC can play another Hit animation.
+    /// </summary>
+    private IEnumerator HitReactionCooldownRoutine()
+    {
+        isOnHitCooldown = true;
+        yield return new WaitForSeconds(hitReactionCooldown);
+        isOnHitCooldown = false;
     }
 
     /// <summary>
@@ -266,6 +293,7 @@ public class NPCDeathController : MonoBehaviour
         }
     }
 }
+
 
 
 

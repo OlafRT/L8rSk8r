@@ -145,6 +145,14 @@ public class PlayerHealthController : MonoBehaviour
     }
 
     /// <summary>
+    /// Returns true if the player is at full health.
+    /// </summary>
+    public bool IsAtFullHealth()
+    {
+        return currentHealth >= maxHealth;
+    }
+
+    /// <summary>
     /// Updates the UI elements to reflect current health.
     /// </summary>
     void UpdateHealthUI()

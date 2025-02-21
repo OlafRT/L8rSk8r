@@ -5,11 +5,11 @@ public class TooltipManager : MonoBehaviour
 {
     public static TooltipManager Instance;
 
-    // The panel that contains the tooltip UI
+    // The panel that contains the tooltip UI.
     public GameObject tooltipPanel;
-    // The Text component for the item name
+    // The Text component for the item name.
     public Text tooltipNameText;
-    // The Text component for the item description
+    // The Text component for the item description.
     public Text tooltipDescriptionText;
 
     private RectTransform tooltipRectTransform;
@@ -29,7 +29,7 @@ public class TooltipManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Show the tooltip with the given text at the specified screen position.
+    /// Shows the tooltip with the given text at the specified screen position.
     /// </summary>
     public void ShowTooltip(string itemName, string description, Vector2 position)
     {
@@ -43,7 +43,7 @@ public class TooltipManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Hide the tooltip.
+    /// Hides the tooltip (leaving the text as-is).
     /// </summary>
     public void HideTooltip()
     {
@@ -54,7 +54,27 @@ public class TooltipManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Update the tooltip panel position to follow the mouse.
+    /// Clears the tooltip text and hides the tooltip panel.
+    /// Call this when, for example, the inventory is closed or an item is used.
+    /// </summary>
+    public void ClearTooltip()
+    {
+        if (tooltipPanel != null)
+        {
+            tooltipPanel.SetActive(false);
+        }
+        if (tooltipNameText != null)
+        {
+            tooltipNameText.text = "";
+        }
+        if (tooltipDescriptionText != null)
+        {
+            tooltipDescriptionText.text = "";
+        }
+    }
+
+    /// <summary>
+    /// Updates the tooltip panel's position.
     /// </summary>
     public void UpdateTooltipPosition(Vector2 position)
     {
@@ -64,4 +84,5 @@ public class TooltipManager : MonoBehaviour
         }
     }
 }
+
 
