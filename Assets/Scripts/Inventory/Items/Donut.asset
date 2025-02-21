@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: Donut
   m_EditorClassIdentifier: 
   itemName: Tasty Donut
-  description: A delicious donut, fresh from the vending machine!
+  description: A delicious donut, "fresh" from the vending machine!
   itemPrefab: {fileID: 4619320957245086814, guid: 3c0e10ecd339c1441af388775f5ea3ba, type: 3}
   stackable: 1
   maxStack: 99
-  previewScaleFactor: 6
+  previewScaleFactor: 2.5
+  healAmount: 0

@@ -17,5 +17,5 @@ MonoBehaviour:
   itemPrefab: {fileID: 3817379442703292803, guid: 8bc665598ba215b4c98a9ace92a2bded, type: 3}
   stackable: 1
   maxStack: 99
-  previewScaleFactor: 3
+  previewScaleFactor: 1.5
   healAmount: 5
