@@ -125,8 +125,8 @@ public class PlayerHealthController : MonoBehaviour
             StartCoroutine(FadeInDeathUI());
             // Disable the animator after a delay.
             StartCoroutine(DisableAnimatorAfterDelay(disableAnimatorDelay));
-            // Mute all audio in the game after 5 seconds.
-            StartCoroutine(MuteAllAudioAfterDelay(5f));
+            // Mute all audio in the game after 15 seconds.
+            StartCoroutine(MuteAllAudioAfterDelay(15f));
         }
     }
 
@@ -223,6 +223,10 @@ public class PlayerHealthController : MonoBehaviour
         }
         if (restartPanel != null)
             restartPanel.SetActive(true);
+
+        // Show the cursor and unlock it so you can click on the UI.
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     /// <summary>

@@ -31,20 +31,33 @@ public class BombDrop : MonoBehaviour
     [Tooltip("AudioSource to play sounds. If not assigned, AudioSource.PlayClipAtPoint will be used.")]
     public AudioSource audioSource;
 
+    [Header("Player Settings")]
+    [Tooltip("Reference to the PlayerHealthController on the separate GameObject. " +
+             "If unassigned, the script will attempt to find one in the scene.")]
+    public PlayerHealthController playerHealthController;
+
     private Rigidbody rb;
     private SphereCollider explosionTrigger;
     private bool exploded = false;
     private GameObject decalInstance;  // Reference to the instantiated decal
-
-    // Flag to ensure the decal is only spawned once.
     private bool decalSpawned = false;
+    private bool damageApplied = false; // Ensure damage is only applied once
 
     void Start()
     {
-        // Debug log to check if Start is only being called once.
         Debug.Log("BombDrop Start() called on " + gameObject.name);
 
-        // Cast a ray downward from the bomb's current position to find the ground.
+        // Attempt to find the PlayerHealthController if not assigned.
+        if (playerHealthController == null)
+        {
+            playerHealthController = FindObjectOfType<PlayerHealthController>();
+            if (playerHealthController == null)
+            {
+                Debug.LogWarning("No PlayerHealthController found in the scene!");
+            }
+        }
+
+        // Cast a ray downward to locate the ground and spawn the decal.
         if (!decalSpawned)
         {
             RaycastHit hit;
@@ -52,9 +65,9 @@ public class BombDrop : MonoBehaviour
             {
                 if (decalPrefab != null)
                 {
-                    // Set decal rotation to 90 degrees on the X-axis.
+                    // Rotate decal so it's flat on the ground (90° about the X-axis).
                     Quaternion decalRotation = Quaternion.Euler(90f, 0f, 0f);
-                    // Add a slight upward offset to prevent z-fighting with the ground.
+                    // Slight upward offset to prevent z-fighting.
                     Vector3 decalPosition = hit.point + Vector3.up * 0.01f;
                     decalInstance = Instantiate(decalPrefab, decalPosition, decalRotation);
                 }
@@ -73,7 +86,7 @@ public class BombDrop : MonoBehaviour
             rb.isKinematic = true;
         }
 
-        // If no AudioSource was provided, try getting one from the GameObject.
+        // Get the AudioSource if not already assigned.
         if (audioSource == null)
         {
             audioSource = GetComponent<AudioSource>();
@@ -157,14 +170,14 @@ public class BombDrop : MonoBehaviour
         // Enable the explosion trigger collider.
         explosionTrigger.enabled = true;
 
-        // Immediately check for any players within the explosion radius.
-        Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
-        foreach (Collider col in colliders)
+        // Apply damage once if the assigned player is within explosion range.
+        if (!damageApplied && playerHealthController != null)
         {
-            PlayerHealthController playerHealth = col.GetComponent<PlayerHealthController>();
-            if (playerHealth != null)
+            float dist = Vector3.Distance(transform.position, playerHealthController.transform.position);
+            if (dist <= explosionRadius)
             {
-                playerHealth.TakeDamage(damageAmount);
+                playerHealthController.TakeDamage(damageAmount);
+                damageApplied = true;
             }
         }
 
@@ -182,19 +195,19 @@ public class BombDrop : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // In case a player enters the explosion radius after the explosion.
+    // In case the player enters the explosion trigger after the explosion.
     void OnTriggerEnter(Collider other)
     {
-        if (exploded)
+        // Check for a collider tagged "Player" (adjust this tag if needed).
+        if (exploded && other.CompareTag("Player") && playerHealthController != null && !damageApplied)
         {
-            PlayerHealthController playerHealth = other.GetComponent<PlayerHealthController>();
-            if (playerHealth != null)
-            {
-                playerHealth.TakeDamage(damageAmount);
-            }
+            playerHealthController.TakeDamage(damageAmount);
+            damageApplied = true;
         }
     }
 }
+
+
 
 
 
