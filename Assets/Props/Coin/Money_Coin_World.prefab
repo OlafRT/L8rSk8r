@@ -118,9 +118,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 0}
   duration: 1
-  curveHeight: 3
+  curveHeight: 5
   startDelay: 0
   activationDistance: 4
+  orbitDuration: 0.4
+  orbitRadius: 1.2
+  orbitSpeed: 3
+  orbitHeight: 1.2
+  orbitRandomness: 1
+  finalDiveDuration: 0.05
 --- !u!64 &4861206828911681574
 MeshCollider:
   m_ObjectHideFlags: 0
