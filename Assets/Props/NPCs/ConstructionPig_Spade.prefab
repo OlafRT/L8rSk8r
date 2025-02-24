@@ -15456,14 +15456,17 @@ MonoBehaviour:
   wanderRadius: 5
   idleTime: 6
   animator: {fileID: 4147573403012900697}
-  chaseSounds: []
+  chaseSounds:
+  - {fileID: 8300000, guid: cda4f3151f0079540b2151f977e66b0f, type: 3}
+  - {fileID: 8300000, guid: 45eff161ed3bd0a47aea8659b48c21d2, type: 3}
+  - {fileID: 8300000, guid: 3f195fae5300e5a46a64cb8379971036, type: 3}
   attackCooldown: 2
   attack1Trigger: Attack1
   attack2Trigger: Attack2
   attack3Trigger: Attack3
-  attack1Sound: {fileID: 0}
-  attack2Sound: {fileID: 0}
-  attack3Sound: {fileID: 0}
+  attack1Sound: {fileID: 8300000, guid: dd7f036ab6426e34d805b70d9f232506, type: 3}
+  attack2Sound: {fileID: 8300000, guid: 2335fd9652d64224aa4fc0db3bf13355, type: 3}
+  attack3Sound: {fileID: 8300000, guid: 3ccf1ae42724b0445bd8bfccf93b4c0d, type: 3}
 --- !u!114 &6418371836815521773
 MonoBehaviour:
   m_ObjectHideFlags: 0
