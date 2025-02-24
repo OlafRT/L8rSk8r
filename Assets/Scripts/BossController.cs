@@ -148,6 +148,7 @@ public class BossController : MonoBehaviour
     private bool isSpeaking = false;
     private bool isImmune = false;
     private bool isStunned = false;
+    public bool IsDead { get { return currentState == BossState.Death; } }
     
     private bool phase80Played = false;
     private bool phase70Played = false;

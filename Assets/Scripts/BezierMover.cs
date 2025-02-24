@@ -4,7 +4,7 @@ using System.Collections;
 public class BezierMover : MonoBehaviour
 {
     [Header("Target Settings")]
-    [Tooltip("The target that this object will move towards. If left empty, it will search for a GameObject tagged 'Player'.")]
+    [Tooltip("The target that this object will move towards. If left empty, it will search for a GameObject named 'Player' with the tag 'Player'.")]
     public Transform target;  
 
     [Header("Movement Settings")]
@@ -55,15 +55,15 @@ public class BezierMover : MonoBehaviour
         noiseOffsetY = Random.Range(0f, 1000f);
         noiseOffsetZ = Random.Range(0f, 1000f);
 
-        // If no target is assigned, try finding one with the tag "Player".
+        // If no target is assigned, try finding one with the name "Player" that also has the tag "Player".
         if (target == null)
         {
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null)
+            GameObject player = GameObject.Find("Player");
+            if (player != null && player.CompareTag("Player"))
                 target = player.transform;
             else
             {
-                Debug.LogError("BezierMover: No target assigned and no GameObject with tag 'Player' found.");
+                Debug.LogError("BezierMover: No target assigned and no GameObject named 'Player' with tag 'Player' found.");
                 enabled = false;
                 return;
             }
@@ -173,6 +173,8 @@ public class BezierMover : MonoBehaviour
         return (uu * p0) + (2 * u * t * p1) + (tt * p2);
     }
 }
+
+
 
 
 

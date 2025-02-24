@@ -15358,7 +15358,11 @@ MonoBehaviour:
   groundOffset: 0.35
   lootPrefabs:
   - {fileID: 2112618243413692, guid: 004cec7ae69f35242b1678c16edb4244, type: 3}
-  lootDropChance: 1
+  - {fileID: 2112618243413692, guid: 004cec7ae69f35242b1678c16edb4244, type: 3}
+  - {fileID: 2112618243413692, guid: 004cec7ae69f35242b1678c16edb4244, type: 3}
+  - {fileID: 2112618243413692, guid: 004cec7ae69f35242b1678c16edb4244, type: 3}
+  - {fileID: 2112618243413692, guid: 004cec7ae69f35242b1678c16edb4244, type: 3}
+  lootDropChance: 0.2
   lootDropOffset: 1
   npcDialogue: {fileID: 0}
   dialogueCanvas: {fileID: 0}

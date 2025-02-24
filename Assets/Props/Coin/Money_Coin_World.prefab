@@ -117,16 +117,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 0}
-  duration: 1
-  curveHeight: 5
+  duration: 0.8
+  curveHeight: 3
   startDelay: 0
-  activationDistance: 4
-  orbitDuration: 0.4
-  orbitRadius: 1.2
+  activationDistance: 6
+  orbitDuration: 0.5
+  orbitRadius: 1
   orbitSpeed: 3
-  orbitHeight: 1.2
-  orbitRandomness: 1
-  finalDiveDuration: 0.05
+  orbitHeight: 1
+  orbitRandomness: 0.3
+  finalDiveDuration: 0.1
 --- !u!64 &4861206828911681574
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -168,7 +168,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.013905303
+  m_Radius: 0.038699523
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &3001293810181047059
 Rigidbody:

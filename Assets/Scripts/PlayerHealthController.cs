@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PlayerHealthController : MonoBehaviour
 {
@@ -55,6 +56,7 @@ public class PlayerHealthController : MonoBehaviour
 
     void Start()
     {
+        isPlayerDead = false;
         currentHealth = startingHealth;
         UpdateHealthUI();
         StartCoroutine(RegenerateHealth());
@@ -254,6 +256,12 @@ public class PlayerHealthController : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         AudioListener.volume = 0f;
+    }
+
+    public void OnRetryButtonClick()
+    {
+        // Reload the current active scene.
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
 
