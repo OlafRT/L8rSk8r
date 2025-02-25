@@ -133,6 +133,9 @@ public class BossController : MonoBehaviour
     [Header("Kill Sound")]
     [Tooltip("Audio clip to play when the boss kills the player.")]
     public AudioClip killSound;
+    public bool KilledPlayer { get; set; } = false;
+
+
     
     //===================================================
     // COMPONENTS & INTERNAL
@@ -307,7 +310,7 @@ public class BossController : MonoBehaviour
                 if (phase50Object != null) phase50Object.SetActive(true);
                 phase50Played = true;
             }
-            if (healthPercent <= 0.1f && !phase10Played)
+            if (healthPercent <= 0.25f && !phase10Played)
             {
                 PlaySound(phase10Sound);
                 if (phase10Object != null) phase10Object.SetActive(true);
@@ -446,7 +449,7 @@ public class BossController : MonoBehaviour
             if (hitSounds != null && hitSounds.Length > 0)
             {
                 int idx = Random.Range(0, hitSounds.Length);
-                PlaySound(hitSounds[idx]);
+                audioSource.PlayOneShot(hitSounds[idx], 0.3f); // 0.4f is the volume multiplier.
             }
         }
         else
@@ -468,7 +471,11 @@ public class BossController : MonoBehaviour
         currentState = BossState.Death;
         agent.isStopped = true;
         animator.SetTrigger(deathAnimationTrigger);
-        PlaySound(deathSound);
+        // Only play the boss's death sound if it did NOT kill the player.
+        if (!KilledPlayer)
+        {
+            PlaySound(deathSound);
+        }
         
         if (musicManager != null)
         {
@@ -506,17 +513,9 @@ public class BossController : MonoBehaviour
         if (bossHealthUIPanel != null)
             bossHealthUIPanel.SetActive(false);
         
-        // **NEW**: When the boss kills the player, play a kill sound.
-        // We'll assume the last attacker is this boss.
-        if (lastAttacker != null && lastAttacker == this)
-        {
-            PlayKillSound();
-            // Optionally clear the static reference.
-            lastAttacker = null;
-        }
-        
         Destroy(gameObject, destroyDelay);
     }
+
     
     /// <summary>
     /// Plays the kill sound for when the boss kills the player.

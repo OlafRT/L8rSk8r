@@ -21,7 +21,7 @@ public class BossDeathTransition : MonoBehaviour
 
     IEnumerator TransitionAfterDelay()
     {
-        yield return new WaitForSeconds(5f);
+        yield return new WaitForSeconds(23f);
         SceneManager.LoadScene("Credits");
     }
 }
